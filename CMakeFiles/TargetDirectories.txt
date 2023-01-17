@@ -1,7 +1,0 @@
-/home/PrinceAmmon/github/http-server/CMakeFiles/rebuild_cache.dir
-/home/PrinceAmmon/github/http-server/CMakeFiles/edit_cache.dir
-/home/PrinceAmmon/github/http-server/CMakeFiles/my_web_server.dir
-/home/PrinceAmmon/github/http-server/_deps/server-build/CMakeFiles/rebuild_cache.dir
-/home/PrinceAmmon/github/http-server/_deps/server-build/CMakeFiles/edit_cache.dir
-/home/PrinceAmmon/github/http-server/_deps/server-build/CMakeFiles/SERVER.dir
-/home/PrinceAmmon/github/http-server/_deps/server-build/CMakeFiles/CLIENT.dir
