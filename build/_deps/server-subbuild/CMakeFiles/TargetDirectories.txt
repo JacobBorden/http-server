@@ -1,3 +1,0 @@
-/home/PrinceAmmon/github/http-server/build/_deps/server-subbuild/CMakeFiles/rebuild_cache.dir
-/home/PrinceAmmon/github/http-server/build/_deps/server-subbuild/CMakeFiles/edit_cache.dir
-/home/PrinceAmmon/github/http-server/build/_deps/server-subbuild/CMakeFiles/server-populate.dir
