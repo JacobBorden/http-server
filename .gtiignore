@@ -1,0 +1,6 @@
+build/*
+.ccls-cache/*
+_deps/*
+CMakeFiles/*
+CMakeCache.txt
+Makefile

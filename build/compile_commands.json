@@ -1,0 +1,27 @@
+[
+{
+  "directory": "/home/PrinceAmmon/github/http-server/build",
+  "command": "/usr/bin/g++  -I/home/PrinceAmmon/github/http-server/dependencies/my_networking_lib/src/server -I/home/PrinceAmmon/github/http-server/dependencies/src/server -g -o CMakeFiles/my_web_server.dir/main.cpp.o -c /home/PrinceAmmon/github/http-server/main.cpp",
+  "file": "/home/PrinceAmmon/github/http-server/main.cpp"
+},
+{
+  "directory": "/home/PrinceAmmon/github/http-server/build",
+  "command": "/usr/bin/g++  -I/home/PrinceAmmon/github/http-server/dependencies/my_networking_lib/src/server -I/home/PrinceAmmon/github/http-server/dependencies/src/server -g -o CMakeFiles/my_web_server.dir/http.cpp.o -c /home/PrinceAmmon/github/http-server/http.cpp",
+  "file": "/home/PrinceAmmon/github/http-server/http.cpp"
+},
+{
+  "directory": "/home/PrinceAmmon/github/http-server/build/_deps/server-build",
+  "command": "/usr/bin/g++  -I/home/PrinceAmmon/github/http-server/dependencies/my_networking_lib/src -I/home/PrinceAmmon/github/http-server/dependencies/my_networking_lib/src/server -g -o CMakeFiles/SERVER.dir/src/server/server.cpp.o -c /home/PrinceAmmon/github/http-server/dependencies/my_networking_lib/src/server/server.cpp",
+  "file": "/home/PrinceAmmon/github/http-server/dependencies/my_networking_lib/src/server/server.cpp"
+},
+{
+  "directory": "/home/PrinceAmmon/github/http-server/build/_deps/server-build",
+  "command": "/usr/bin/g++  -I/home/PrinceAmmon/github/http-server/dependencies/my_networking_lib/src -I/home/PrinceAmmon/github/http-server/dependencies/my_networking_lib/src/server -g -o CMakeFiles/SERVER.dir/src/server/errorcodes.cpp.o -c /home/PrinceAmmon/github/http-server/dependencies/my_networking_lib/src/server/errorcodes.cpp",
+  "file": "/home/PrinceAmmon/github/http-server/dependencies/my_networking_lib/src/server/errorcodes.cpp"
+},
+{
+  "directory": "/home/PrinceAmmon/github/http-server/build/_deps/server-build",
+  "command": "/usr/bin/g++  -I/home/PrinceAmmon/github/http-server/dependencies/my_networking_lib/src -g -o CMakeFiles/CLIENT.dir/src/client/client.cpp.o -c /home/PrinceAmmon/github/http-server/dependencies/my_networking_lib/src/client/client.cpp",
+  "file": "/home/PrinceAmmon/github/http-server/dependencies/my_networking_lib/src/client/client.cpp"
+}
+]

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libSERVER.a CMakeFiles/SERVER.dir/src/server/server.cpp.o CMakeFiles/SERVER.dir/src/server/errorcodes.cpp.o
+/usr/bin/ranlib libSERVER.a
