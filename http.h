@@ -44,6 +44,7 @@ std::string HandlePutRequest(HTTPREQUEST _pRequest);
 std::string HandleDeleteRequest(HTTPREQUEST _pRequest);
 std::string HandleInvalidMethod(HTTPREQUEST _pRequest);
 std::string GenerateErrorResponse(std::string _pErrorMessage, int _pErrorCode);
+std::string GetMimeType(std::string _pFilename);
 }
 
 #endif

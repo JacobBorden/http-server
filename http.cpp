@@ -51,7 +51,7 @@ std::string HTTP::HandleGetRequest(HTTP::HTTPREQUEST _pRequest)
 	httpResponse.protocol = _pRequest.protocol;
 	httpResponse.statusCodeNumber = 200;
 	httpResponse.reasonPhrase = statusCode.at(httpResponse.statusCodeNumber);
-	httpResponse.contentType = "text/html";
+	httpResponse.contentType = GetMimeType(file_path);
 	httpResponse.body = buffer;
 	responseStream << httpResponse.protocol <<" " <<httpResponse.statusCodeNumber<<" "<<httpResponse.reasonPhrase<<"\r\n";
 	responseStream<<"Content-Type: "<<httpResponse.contentType<<"\r\n";
@@ -148,4 +148,22 @@ std::string HTTP::GenerateErrorResponse(std::string _pErrorMessage, int _pErrorC
 	return response;
 
 
+}
+
+std::string HTTP::GetMimeType(std::string _pFilename)
+{
+	std::string fileExtention = _pFilename.substr(_pFilename.find_last_of(".") + 1);
+	if(fileExtention == "html")
+		return "text/html";
+	else if(fileExtention == "css")
+		return "text/css";
+	else if (fileExtention == "js")
+		return "application/javascript";
+	else if (fileExtention  == "jpg" || fileExtention == "jpeg")
+		return "imagee/jpeg";
+	else if (fileExtention == "png")
+		return "image/png";
+	else if (fileExtention == "gif")
+		return "image/gif";
+	else return "application/octet-stream";
 }
