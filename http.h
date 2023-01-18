@@ -6,7 +6,7 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
-
+#include <fstream>
 namespace HTTP {
 
 const std::unordered_map <int, std::string> statusCode = {
@@ -43,6 +43,7 @@ std::string HandlePostRequest(HTTPREQUEST _pRequest);
 std::string HandlePutRequest(HTTPREQUEST _pRequest);
 std::string HandleDeleteRequest(HTTPREQUEST _pRequest);
 std::string HandleInvalidMethod(HTTPREQUEST _pRequest);
+std::string GenerateErrorResponse(std::string _pErrorMessage, int _pErrorCode);
 }
 
 #endif
