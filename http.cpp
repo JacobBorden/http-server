@@ -27,23 +27,30 @@ std::string HTTP::GenerateResponse(HTTP::HTTPREQUEST _pRequest)
 
 }
 
+std::string HTTP::HandleInvalidMethod(HTTP::HTTPREQUEST _pRequest)
+{
+	return GenerateErrorResponse("405 Method Not Allowed", 405);
+}
+
 std::string HTTP::HandleGetRequest(HTTP::HTTPREQUEST _pRequest)
 {
-	std::string file_path = "public" +_pRequest.uri;
+	if(_pRequest.uri == "/")
+		_pRequest.uri = "/index.html";
+	std::string filePath = "public" +_pRequest.uri;
 
 	// check if the file exists
-	std::ifstream file(file_path, std::ios::binary);
+	std::ifstream file(filePath, std::ios::binary);
 	if(!file.is_open())
 		return GenerateErrorResponse("404 Not Found",404);
 
 	// Get the file size
 	file.seekg(0, std::ios::end);
-	int file_size = file.tellg();
+	int fileSize = file.tellg();
 	file.seekg(0, std::ios::beg);
 
 	//read file into a buffer
-	char* buffer = new char[file_size];
-	file.read(buffer, file_size);
+	char* buffer = new char[fileSize];
+	file.read(buffer, fileSize);
 
 	//Create the response
 	std::ostringstream responseStream;
@@ -51,11 +58,11 @@ std::string HTTP::HandleGetRequest(HTTP::HTTPREQUEST _pRequest)
 	httpResponse.protocol = _pRequest.protocol;
 	httpResponse.statusCodeNumber = 200;
 	httpResponse.reasonPhrase = statusCode.at(httpResponse.statusCodeNumber);
-	httpResponse.contentType = GetMimeType(file_path);
+	httpResponse.contentType = GetMimeType(filePath);
 	httpResponse.body = buffer;
 	responseStream << httpResponse.protocol <<" " <<httpResponse.statusCodeNumber<<" "<<httpResponse.reasonPhrase<<"\r\n";
 	responseStream<<"Content-Type: "<<httpResponse.contentType<<"\r\n";
-	responseStream<<"Content-Length: "<< file_size<<"\r\n";
+	responseStream<<"Content-Length: "<< fileSize<<"\r\n";
 	responseStream<<"\r\n";
 	responseStream<<httpResponse.body;
 	std::string response = responseStream.str();
@@ -160,7 +167,7 @@ std::string HTTP::GetMimeType(std::string _pFilename)
 	else if (fileExtention == "js")
 		return "application/javascript";
 	else if (fileExtention  == "jpg" || fileExtention == "jpeg")
-		return "imagee/jpeg";
+		return "image/jpeg";
 	else if (fileExtention == "png")
 		return "image/png";
 	else if (fileExtention == "gif")

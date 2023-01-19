@@ -2,6 +2,8 @@ build/*
 .ccls-cache/*
 _deps/*
 CMakeFiles/*
+public/*
+my_web_server
 CMakeCache.txt
 Makefile
 cmake_install.cmake
