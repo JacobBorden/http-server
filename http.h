@@ -7,6 +7,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <fstream>
+#include <iostream>
 namespace HTTP {
 
 const std::unordered_map <int, std::string> statusCode = {
@@ -24,6 +25,7 @@ struct HTTPREQUEST
 	std::string method;
 	std::string uri;
 	std::string protocol;
+	std::unordered_map<std::string,std::string> headers;
 	std::string body;
 };
 

@@ -8,7 +8,21 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 	std::getline(requestStream, requestLine);
 	std::istringstream requestLineStream (requestLine);
 	requestLineStream >> request.method >> request.uri >> request.protocol;
-	request.body = _pRequest.substr(requestLine.size());
+	std::string line;
+	while(std::getline(requestStream, line) && line != "\r")
+	{
+		std::istringstream lineStream(line);
+		std::string headerName;
+		std::string headerValue;
+		lineStream >> headerName;
+		if(headerName.substr(headerName.size()-1) == ":")
+		{
+			headerName = headerName.substr(0, headerName.size()-1);
+			std::getline(lineStream, headerValue);
+			request.headers[headerName] = headerValue;
+		}
+
+	}
 	return request;
 }
 
@@ -88,6 +102,7 @@ std::string HTTP::HandlePostRequest(HTTP::HTTPREQUEST _pRequest)
 	responseStream<<"\r\n";
 	responseStream<<httpResponse.body;
 	std::string response = responseStream.str();
+	std::cout<<_pRequest.body;
 	return response;
 
 }
