@@ -23,6 +23,12 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 		}
 
 	}
+
+	while(std::getline(requestStream,line))
+	{
+		if(line !="\r")
+			request.body +=line;
+	}
 	return request;
 }
 
@@ -95,14 +101,13 @@ std::string HTTP::HandlePostRequest(HTTP::HTTPREQUEST _pRequest)
 	httpResponse.statusCodeNumber = 200;
 	httpResponse.reasonPhrase = statusCode.at(httpResponse.statusCodeNumber);
 	httpResponse.contentType = "text/html";
-	httpResponse.body = "<H1>Data Processed Successfully</H1>";
+	httpResponse.body = _pRequest.body;
 	responseStream << httpResponse.protocol <<" " <<httpResponse.statusCodeNumber<<" "<<httpResponse.reasonPhrase<<"\r\n";
 	responseStream<<"Content-Type: "<<httpResponse.contentType<<"\r\n";
 	responseStream<<"Content-Length: "<< httpResponse.body.size()<<"\r\n";
 	responseStream<<"\r\n";
 	responseStream<<httpResponse.body;
 	std::string response = responseStream.str();
-	std::cout<<_pRequest.body;
 	return response;
 
 }
@@ -157,7 +162,7 @@ std::string HTTP::GenerateErrorResponse(std::string _pErrorMessage, int _pErrorC
 	HTTP::HTTPRESPONSE httpResponse;
 	std::ostringstream responseStream;
 	httpResponse.protocol = "HTTP/1.1";
-	httpResponse.statusCodeNumber = _pErrorCode;
+	httpResponse.statusCodeNumber =_pErrorCode;
 	httpResponse.reasonPhrase = statusCode.at(httpResponse.statusCodeNumber);
 	httpResponse.contentType = "text/html";
 	httpResponse.body = _pErrorMessage;

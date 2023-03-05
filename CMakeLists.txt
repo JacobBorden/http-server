@@ -15,7 +15,8 @@ FetchContent_Declare(
 	find_package(Threads)
 #Add the library to the include directories
 include_directories(dependencies/my_networking_lib/src/server)
+file(GLOB MySources "src/*.cpp")
 
-add_executable(my_web_server main.cpp http.h http.cpp)
-target_include_directories(my_web_server PRIVATE dependencies/src/server)
-target_link_libraries(my_web_server SERVER Threads::Threads)
+add_executable(server.exe ${MySources})
+target_link_libraries(server.exe SERVER Threads::Threads)
+set_target_properties(server.exe PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
