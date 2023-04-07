@@ -6,15 +6,15 @@ include(FetchContent)
 FetchContent_Declare(
 	SERVER
 	GIT_REPOSITORY https://github.com/JacobBorden/NetworkingLibrary.git
-	SOURCE_DIR ./dependencies/my_networking_lib
+	SOURCE_DIR ../dependencies/my_networking_lib
 	)
 
 	FetchContent_MakeAvailable(SERVER)
 
-FetchContent(
+FetchContent_Declare(
 	googletest
 	GIT_REPOSITORY https://github.com/google/googletest.git
-	SOURCE_DIR ./dependencies/googletest
+	SOURCE_DIR ../dependencies/googletest
 	)
 
 	set (CMAKE_THREAD_PREFER_PTHREAD ON)
@@ -31,7 +31,7 @@ add_executable(server.exe ${MySources})
 target_link_libraries(server.exe SERVER Threads::Threads)
 set_target_properties(server.exe PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 # Set the path to the test_resources folder
-set(TEST_RESOURCES_DIR "${CMAKE_SOURCE_DIR}/test_resources")
+set(TEST_RESOURCES_DIR "${CMAKE_SOURCE_DIR}/test/test_resources")
 
 # Configure the test index.html file
 configure_file(${TEST_RESOURCES_DIR}/index.html ${CMAKE_BINARY_DIR}/tests/public/index.html COPYONLY)
