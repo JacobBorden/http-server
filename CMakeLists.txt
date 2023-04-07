@@ -6,10 +6,17 @@ include(FetchContent)
 FetchContent_Declare(
 	SERVER
 	GIT_REPOSITORY https://github.com/JacobBorden/NetworkingLibrary.git
-	SOURCE_DIR ../dependencies/my_networking_lib
+	SOURCE_DIR ./dependencies/my_networking_lib
 	)
 
 	FetchContent_MakeAvailable(SERVER)
+
+FetchContent(
+	googletest
+	GIT_REPOSITORY https://github.com/google/googletest.git
+	SOURCE_DIR ./dependencies/googletest
+	)
+
 	set (CMAKE_THREAD_PREFER_PTHREAD ON)
 	set (THREADS_PREFER_PTHREAD_FLAG ON)
 	find_package(Threads)
@@ -33,4 +40,4 @@ enable_testing()
 add_subdirectory(tests)
 
 # Add Google Test to the build
-add_subdirectory(googletest)
+add_subdirectory(dependencies/googletest)

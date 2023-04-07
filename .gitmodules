@@ -1,9 +1,6 @@
 [submodule "googletest"]
 	path = googletest
-	url = https://github.com/google/googletest.git
-[submodule "NetworkingLibrary"]
-	path = NetworkingLibrary
-	url = https://github.com/JacobBorden/NetworkingLibrary
+	url = http://github.com/google/googletest.git
 [submodule "dependencies/my_networking_lib"]
 	path = dependencies/my_networking_lib
-	url = https://github.com/JacobBorden/NetworkingLibrary
+	url = https://github.com/JacobBorden/NetworkingLibrary.git
