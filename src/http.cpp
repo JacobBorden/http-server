@@ -1,5 +1,18 @@
 #include "http.h"
 
+std::string trim(const std::string& str)
+{
+    const std::string whitespace = " \r";
+    size_t start = str.find_first_not_of(whitespace);
+    size_t end = str.find_last_not_of(whitespace);
+
+    if (start == std::string::npos) // No non-whitespace characters found
+        return "";
+
+    return str.substr(start, end - start + 1);
+}
+
+
 HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 {
 	HTTPREQUEST request;
@@ -19,7 +32,7 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 		{
 			headerName = headerName.substr(0, headerName.size()-1);
 			std::getline(lineStream, headerValue);
-			request.headers[headerName] = headerValue;
+			request.headers[headerName] = trim(headerValue);
 		}
 
 	}

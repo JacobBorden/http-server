@@ -8,6 +8,9 @@
 #include <unordered_map>
 #include <fstream>
 #include <iostream>
+
+std::string trim(const std::string& str);
+
 namespace HTTP {
 
 const std::unordered_map <int, std::string> statusCode = {

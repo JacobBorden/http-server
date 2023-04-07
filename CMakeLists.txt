@@ -17,6 +17,14 @@ FetchContent_Declare(
 include_directories(dependencies/my_networking_lib/src/server)
 file(GLOB MySources "src/*.cpp")
 
+add_library(http_server ${MySources})
+target_link_libraries(http_server SERVER Threads::Threads)
+
 add_executable(server.exe ${MySources})
 target_link_libraries(server.exe SERVER Threads::Threads)
 set_target_properties(server.exe PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+enable_testing()
+add_subdirectory(tests)
+
+# Add Google Test to the build
+add_subdirectory(googletest)
