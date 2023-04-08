@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(http_server)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 #Download and include server library
 include(FetchContent)
 FetchContent_Declare(
