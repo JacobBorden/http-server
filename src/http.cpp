@@ -2,14 +2,14 @@
 
 std::string trim(const std::string& str)
 {
-    const std::string whitespace = " \r";
-    size_t start = str.find_first_not_of(whitespace);
-    size_t end = str.find_last_not_of(whitespace);
+	const std::string whitespace = " \r";
+	size_t start = str.find_first_not_of(whitespace);
+	size_t end = str.find_last_not_of(whitespace);
 
-    if (start == std::string::npos) // No non-whitespace characters found
-        return "";
+	if (start == std::string::npos) // No non-whitespace characters found
+		return "";
 
-    return str.substr(start, end - start + 1);
+	return str.substr(start, end - start + 1);
 }
 
 
