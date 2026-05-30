@@ -67,6 +67,9 @@ std::string HTTP::HandleInvalidMethod(HTTP::HTTPREQUEST _pRequest)
 
 std::string HTTP::HandleGetRequest(HTTP::HTTPREQUEST _pRequest)
 {
+	if(_pRequest.uri.find("..") != std::string::npos)
+		return GenerateErrorResponse("400 Bad Request", 400);
+
 	if(_pRequest.uri == "/")
 		_pRequest.uri = "/index.html";
 	std::string filePath = "public" +_pRequest.uri;

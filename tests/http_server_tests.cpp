@@ -42,5 +42,21 @@ TEST(HTTPServerTests, GenerateResponse) {
     ASSERT_EQ(response, expected_response);
 }
 
+// Test case for directory traversal attempt
+TEST(HTTPServerTests, DirectoryTraversal) {
+    HTTP::HTTPREQUEST request;
+    request.method = "GET";
+    request.uri = "/../etc/passwd";
+    request.protocol = "HTTP/1.1";
+    request.headers["Host"] = "www.example.com";
+    request.headers["User-Agent"] = "TestAgent/1.0";
+    request.headers["Accept"] = "text/html";
+
+    std::string response = HTTP::GenerateResponse(request);
+
+    // Check that it starts with the expected error status
+    ASSERT_TRUE(response.find("HTTP/1.1 400 Bad Request") != std::string::npos);
+}
+
 // Add more test cases as needed
 
