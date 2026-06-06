@@ -195,18 +195,54 @@ std::string HTTP::GenerateErrorResponse(std::string _pErrorMessage, int _pErrorC
 
 std::string HTTP::GetMimeType(std::string _pFilename)
 {
-	std::string fileExtention = _pFilename.substr(_pFilename.find_last_of(".") + 1);
-	if(fileExtention == "html")
-		return "text/html";
-	else if(fileExtention == "css")
-		return "text/css";
-	else if (fileExtention == "js")
-		return "application/javascript";
-	else if (fileExtention  == "jpg" || fileExtention == "jpeg")
-		return "image/jpeg";
-	else if (fileExtention == "png")
-		return "image/png";
-	else if (fileExtention == "gif")
-		return "image/gif";
-	else return "application/octet-stream";
+	size_t lastDotPos = _pFilename.find_last_of(".");
+	if (lastDotPos == std::string::npos) {
+		return "application/octet-stream";
+	}
+
+	std::string fileExtension = _pFilename.substr(lastDotPos + 1);
+
+	// Convert extension to lowercase for case-insensitive matching
+	for (auto& c : fileExtension) {
+		c = std::tolower(static_cast<unsigned char>(c));
+	}
+
+	static const std::unordered_map<std::string, std::string> mimeTypes = {
+		{"html", "text/html"},
+		{"htm", "text/html"},
+		{"css", "text/css"},
+		{"js", "application/javascript"},
+		{"json", "application/json"},
+		{"xml", "application/xml"},
+		{"txt", "text/plain"},
+		{"csv", "text/csv"},
+
+		{"jpg", "image/jpeg"},
+		{"jpeg", "image/jpeg"},
+		{"png", "image/png"},
+		{"gif", "image/gif"},
+		{"svg", "image/svg+xml"},
+		{"ico", "image/x-icon"},
+		{"webp", "image/webp"},
+		{"bmp", "image/bmp"},
+
+		{"mp3", "audio/mpeg"},
+		{"wav", "audio/wav"},
+		{"ogg", "audio/ogg"},
+
+		{"mp4", "video/mp4"},
+		{"webm", "video/webm"},
+
+		{"pdf", "application/pdf"},
+		{"zip", "application/zip"},
+		{"tar", "application/x-tar"},
+		{"gz", "application/gzip"}
+	};
+
+	auto it = mimeTypes.find(fileExtension);
+	if (it != mimeTypes.end()) {
+		return it->second;
+	}
+
+	return "application/octet-stream";
 }
