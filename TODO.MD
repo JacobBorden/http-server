@@ -6,7 +6,7 @@
 - [ ] add more types to mime look up
 
 ## Newly Identified Improvements
-- [ ] Implement a Thread Pool to replace the `std::thread(...).detach()` model for better scalability and resource management.
+- [x] Implement a Thread Pool to replace the `std::thread(...).detach()` model for better scalability and resource management.
 - [ ] Enhance HTTP parsing to support chunked transfer encoding and larger bodies.
 - [x] Sanitize the requested URI in `HandleGetRequest` to prevent directory traversal attacks (e.g., path normalization before fetching the file).
 - [ ] Add configuration options (port, host, public directory) via command-line arguments or a config file instead of hardcoded values.
