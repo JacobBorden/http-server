@@ -195,18 +195,32 @@ std::string HTTP::GenerateErrorResponse(std::string _pErrorMessage, int _pErrorC
 
 std::string HTTP::GetMimeType(std::string _pFilename)
 {
-	std::string fileExtention = _pFilename.substr(_pFilename.find_last_of(".") + 1);
-	if(fileExtention == "html")
-		return "text/html";
-	else if(fileExtention == "css")
-		return "text/css";
-	else if (fileExtention == "js")
-		return "application/javascript";
-	else if (fileExtention  == "jpg" || fileExtention == "jpeg")
-		return "image/jpeg";
-	else if (fileExtention == "png")
-		return "image/png";
-	else if (fileExtention == "gif")
-		return "image/gif";
-	else return "application/octet-stream";
+	size_t dotPos = _pFilename.find_last_of(".");
+	if (dotPos == std::string::npos)
+		return "application/octet-stream";
+
+	std::string fileExtension = _pFilename.substr(dotPos + 1);
+
+	static const std::unordered_map<std::string, std::string> mimeTypes = {
+		{"html", "text/html"},
+		{"css", "text/css"},
+		{"js", "application/javascript"},
+		{"jpg", "image/jpeg"},
+		{"jpeg", "image/jpeg"},
+		{"png", "image/png"},
+		{"gif", "image/gif"},
+		{"json", "application/json"},
+		{"txt", "text/plain"},
+		{"xml", "application/xml"},
+		{"svg", "image/svg+xml"},
+		{"ico", "image/x-icon"},
+		{"pdf", "application/pdf"},
+		{"webp", "image/webp"}
+	};
+
+	auto it = mimeTypes.find(fileExtension);
+	if (it != mimeTypes.end()) {
+		return it->second;
+	}
+	return "application/octet-stream";
 }
