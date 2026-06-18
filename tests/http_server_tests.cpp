@@ -60,3 +60,29 @@ TEST(HTTPServerTests, DirectoryTraversal) {
 
 // Add more test cases as needed
 
+// Test case for MIME type lookup
+TEST(HTTPServerTests, GetMimeType) {
+    ASSERT_EQ(HTTP::GetMimeType("test.html"), "text/html");
+    ASSERT_EQ(HTTP::GetMimeType("style.css"), "text/css");
+    ASSERT_EQ(HTTP::GetMimeType("script.js"), "application/javascript");
+    ASSERT_EQ(HTTP::GetMimeType("image.jpg"), "image/jpeg");
+    ASSERT_EQ(HTTP::GetMimeType("image.jpeg"), "image/jpeg");
+    ASSERT_EQ(HTTP::GetMimeType("image.png"), "image/png");
+    ASSERT_EQ(HTTP::GetMimeType("image.gif"), "image/gif");
+    ASSERT_EQ(HTTP::GetMimeType("data.json"), "application/json");
+    ASSERT_EQ(HTTP::GetMimeType("data.xml"), "application/xml");
+    ASSERT_EQ(HTTP::GetMimeType("document.pdf"), "application/pdf");
+    ASSERT_EQ(HTTP::GetMimeType("archive.zip"), "application/zip");
+    ASSERT_EQ(HTTP::GetMimeType("notes.txt"), "text/plain");
+    ASSERT_EQ(HTTP::GetMimeType("data.csv"), "text/csv");
+    ASSERT_EQ(HTTP::GetMimeType("vector.svg"), "image/svg+xml");
+    ASSERT_EQ(HTTP::GetMimeType("favicon.ico"), "image/x-icon");
+    ASSERT_EQ(HTTP::GetMimeType("image.webp"), "image/webp");
+    ASSERT_EQ(HTTP::GetMimeType("audio.mp3"), "audio/mpeg");
+    ASSERT_EQ(HTTP::GetMimeType("video.mp4"), "video/mp4");
+
+    // Fallback cases
+    ASSERT_EQ(HTTP::GetMimeType("unknown.xyz"), "application/octet-stream");
+    ASSERT_EQ(HTTP::GetMimeType("no_extension"), "application/octet-stream");
+    ASSERT_EQ(HTTP::GetMimeType(".hidden"), "application/octet-stream");
+}
