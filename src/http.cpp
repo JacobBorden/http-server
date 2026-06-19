@@ -208,5 +208,29 @@ std::string HTTP::GetMimeType(std::string _pFilename)
 		return "image/png";
 	else if (fileExtention == "gif")
 		return "image/gif";
+	else if (fileExtention == "json")
+		return "application/json";
+	else if (fileExtention == "xml")
+		return "application/xml";
+	else if (fileExtention == "txt")
+		return "text/plain";
+	else if (fileExtention == "svg")
+		return "image/svg+xml";
+	else if (fileExtention == "pdf")
+		return "application/pdf";
+	else if (fileExtention == "zip")
+		return "application/zip";
+	else if (fileExtention == "mp4")
+		return "video/mp4";
+	else if (fileExtention == "woff")
+		return "font/woff";
+	else if (fileExtention == "woff2")
+		return "font/woff2";
+	else if (fileExtention == "ttf")
+		return "font/ttf";
+	else if (fileExtention == "mp3")
+		return "audio/mpeg";
+	else if (fileExtention == "wav")
+		return "audio/wav";
 	else return "application/octet-stream";
 }
