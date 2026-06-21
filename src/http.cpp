@@ -196,7 +196,7 @@ std::string HTTP::GenerateErrorResponse(std::string _pErrorMessage, int _pErrorC
 std::string HTTP::GetMimeType(std::string _pFilename)
 {
 	std::string fileExtention = _pFilename.substr(_pFilename.find_last_of(".") + 1);
-	if(fileExtention == "html")
+	if(fileExtention == "html" || fileExtention == "htm")
 		return "text/html";
 	else if(fileExtention == "css")
 		return "text/css";
@@ -208,5 +208,19 @@ std::string HTTP::GetMimeType(std::string _pFilename)
 		return "image/png";
 	else if (fileExtention == "gif")
 		return "image/gif";
+	else if (fileExtention == "json")
+		return "application/json";
+	else if (fileExtention == "xml")
+		return "application/xml";
+	else if (fileExtention == "txt")
+		return "text/plain";
+	else if (fileExtention == "svg")
+		return "image/svg+xml";
+	else if (fileExtention == "pdf")
+		return "application/pdf";
+	else if (fileExtention == "webp")
+		return "image/webp";
+	else if (fileExtention == "ico")
+		return "image/x-icon";
 	else return "application/octet-stream";
 }
