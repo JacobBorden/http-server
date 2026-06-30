@@ -58,5 +58,27 @@ TEST(HTTPServerTests, DirectoryTraversal) {
     ASSERT_TRUE(response.find("HTTP/1.1 400 Bad Request") != std::string::npos);
 }
 
+// Test case for GetMimeType function
+TEST(HTTPServerTests, GetMimeType) {
+    ASSERT_EQ(HTTP::GetMimeType("test.html"), "text/html");
+    ASSERT_EQ(HTTP::GetMimeType("style.css"), "text/css");
+    ASSERT_EQ(HTTP::GetMimeType("script.js"), "application/javascript");
+    ASSERT_EQ(HTTP::GetMimeType("image.jpg"), "image/jpeg");
+    ASSERT_EQ(HTTP::GetMimeType("image.jpeg"), "image/jpeg");
+    ASSERT_EQ(HTTP::GetMimeType("image.png"), "image/png");
+    ASSERT_EQ(HTTP::GetMimeType("image.gif"), "image/gif");
+    ASSERT_EQ(HTTP::GetMimeType("data.json"), "application/json");
+    ASSERT_EQ(HTTP::GetMimeType("document.txt"), "text/plain");
+    ASSERT_EQ(HTTP::GetMimeType("file.pdf"), "application/pdf");
+    ASSERT_EQ(HTTP::GetMimeType("vector.svg"), "image/svg+xml");
+    ASSERT_EQ(HTTP::GetMimeType("image.webp"), "image/webp");
+    ASSERT_EQ(HTTP::GetMimeType("favicon.ico"), "image/x-icon");
+    ASSERT_EQ(HTTP::GetMimeType("data.xml"), "application/xml");
+    ASSERT_EQ(HTTP::GetMimeType("data.csv"), "text/csv");
+    ASSERT_EQ(HTTP::GetMimeType("archive.zip"), "application/zip");
+    ASSERT_EQ(HTTP::GetMimeType("video.mp4"), "video/mp4");
+    ASSERT_EQ(HTTP::GetMimeType("unknown.ext"), "application/octet-stream");
+}
+
 // Add more test cases as needed
 
