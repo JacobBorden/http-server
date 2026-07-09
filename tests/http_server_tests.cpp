@@ -58,5 +58,28 @@ TEST(HTTPServerTests, DirectoryTraversal) {
     ASSERT_TRUE(response.find("HTTP/1.1 400 Bad Request") != std::string::npos);
 }
 
+// Test case for GetMimeType
+TEST(HTTPServerTests, GetMimeType) {
+    ASSERT_EQ(HTTP::GetMimeType("test.html"), "text/html");
+    ASSERT_EQ(HTTP::GetMimeType("test.css"), "text/css");
+    ASSERT_EQ(HTTP::GetMimeType("test.js"), "application/javascript");
+    ASSERT_EQ(HTTP::GetMimeType("test.jpg"), "image/jpeg");
+    ASSERT_EQ(HTTP::GetMimeType("test.jpeg"), "image/jpeg");
+    ASSERT_EQ(HTTP::GetMimeType("test.png"), "image/png");
+    ASSERT_EQ(HTTP::GetMimeType("test.gif"), "image/gif");
+    ASSERT_EQ(HTTP::GetMimeType("test.json"), "application/json");
+    ASSERT_EQ(HTTP::GetMimeType("test.xml"), "application/xml");
+    ASSERT_EQ(HTTP::GetMimeType("test.pdf"), "application/pdf");
+    ASSERT_EQ(HTTP::GetMimeType("test.txt"), "text/plain");
+    ASSERT_EQ(HTTP::GetMimeType("test.csv"), "text/csv");
+    ASSERT_EQ(HTTP::GetMimeType("test.svg"), "image/svg+xml");
+    ASSERT_EQ(HTTP::GetMimeType("test.webp"), "image/webp");
+    ASSERT_EQ(HTTP::GetMimeType("test.mp3"), "audio/mpeg");
+    ASSERT_EQ(HTTP::GetMimeType("test.mp4"), "video/mp4");
+    ASSERT_EQ(HTTP::GetMimeType("test.wav"), "audio/wav");
+    ASSERT_EQ(HTTP::GetMimeType("test.zip"), "application/zip");
+    ASSERT_EQ(HTTP::GetMimeType("test.unknown"), "application/octet-stream");
+}
+
 // Add more test cases as needed
 
