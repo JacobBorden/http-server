@@ -60,3 +60,26 @@ TEST(HTTPServerTests, DirectoryTraversal) {
 
 // Add more test cases as needed
 
+// Test case for GetMimeType
+TEST(HTTPServerTests, GetMimeType) {
+    ASSERT_EQ(HTTP::GetMimeType("index.html"), "text/html");
+    ASSERT_EQ(HTTP::GetMimeType("style.css"), "text/css");
+    ASSERT_EQ(HTTP::GetMimeType("script.js"), "application/javascript");
+    ASSERT_EQ(HTTP::GetMimeType("image.jpg"), "image/jpeg");
+    ASSERT_EQ(HTTP::GetMimeType("image.jpeg"), "image/jpeg");
+    ASSERT_EQ(HTTP::GetMimeType("image.png"), "image/png");
+    ASSERT_EQ(HTTP::GetMimeType("image.gif"), "image/gif");
+    ASSERT_EQ(HTTP::GetMimeType("data.json"), "application/json");
+    ASSERT_EQ(HTTP::GetMimeType("text.txt"), "text/plain");
+    ASSERT_EQ(HTTP::GetMimeType("document.pdf"), "application/pdf");
+    ASSERT_EQ(HTTP::GetMimeType("data.xml"), "application/xml");
+    ASSERT_EQ(HTTP::GetMimeType("favicon.ico"), "image/x-icon");
+    ASSERT_EQ(HTTP::GetMimeType("vector.svg"), "image/svg+xml");
+    ASSERT_EQ(HTTP::GetMimeType("image.webp"), "image/webp");
+    ASSERT_EQ(HTTP::GetMimeType("font.woff"), "font/woff");
+    ASSERT_EQ(HTTP::GetMimeType("font.woff2"), "font/woff2");
+
+    // Test fallback
+    ASSERT_EQ(HTTP::GetMimeType("unknown.xyz"), "application/octet-stream");
+    ASSERT_EQ(HTTP::GetMimeType("no_extension"), "application/octet-stream");
+}
