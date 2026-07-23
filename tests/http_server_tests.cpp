@@ -58,5 +58,14 @@ TEST(HTTPServerTests, DirectoryTraversal) {
     ASSERT_TRUE(response.find("HTTP/1.1 400 Bad Request") != std::string::npos);
 }
 
+// Test case for GetMimeType
+TEST(HTTPServerTests, GetMimeType) {
+    ASSERT_EQ(HTTP::GetMimeType("test.json"), "application/json");
+    ASSERT_EQ(HTTP::GetMimeType("test.xml"), "application/xml");
+    ASSERT_EQ(HTTP::GetMimeType("test.pdf"), "application/pdf");
+    ASSERT_EQ(HTTP::GetMimeType("test.unknown"), "application/octet-stream");
+    ASSERT_EQ(HTTP::GetMimeType("no_extension"), "application/octet-stream");
+}
+
 // Add more test cases as needed
 
