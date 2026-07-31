@@ -202,6 +202,26 @@ std::string HTTP::GetMimeType(std::string _pFilename)
 		return "text/css";
 	else if (fileExtention == "js")
 		return "application/javascript";
+	else if (fileExtention == "json")
+		return "application/json";
+	else if (fileExtention == "xml")
+		return "application/xml";
+	else if (fileExtention == "txt")
+		return "text/plain";
+	else if (fileExtention == "pdf")
+		return "application/pdf";
+	else if (fileExtention == "svg")
+		return "image/svg+xml";
+	else if (fileExtention == "webp")
+		return "image/webp";
+	else if (fileExtention == "ico")
+		return "image/x-icon";
+	else if (fileExtention == "mp3")
+		return "audio/mpeg";
+	else if (fileExtention == "mp4")
+		return "video/mp4";
+	else if (fileExtention == "wasm")
+		return "application/wasm";
 	else if (fileExtention  == "jpg" || fileExtention == "jpeg")
 		return "image/jpeg";
 	else if (fileExtention == "png")
