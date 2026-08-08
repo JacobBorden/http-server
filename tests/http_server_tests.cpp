@@ -60,3 +60,11 @@ TEST(HTTPServerTests, DirectoryTraversal) {
 
 // Add more test cases as needed
 
+TEST(HTTPServerTests, GetMimeType) {
+    ASSERT_EQ(HTTP::GetMimeType("file.json"), "application/json");
+    ASSERT_EQ(HTTP::GetMimeType("file.txt"), "text/plain");
+    ASSERT_EQ(HTTP::GetMimeType("file.svg"), "image/svg+xml");
+    ASSERT_EQ(HTTP::GetMimeType("file.pdf"), "application/pdf");
+    ASSERT_EQ(HTTP::GetMimeType("file.mp4"), "video/mp4");
+    ASSERT_EQ(HTTP::GetMimeType("file"), "application/octet-stream");
+}
