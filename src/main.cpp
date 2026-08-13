@@ -5,6 +5,7 @@
 #include "server.h"
 #include "http.h"
 #include "logger.h"
+#include "thread_pool.h"
 
 Networking::Server server(80, Networking::ServerType::IPv4);
 
@@ -37,11 +38,11 @@ int main(){
 		return 1;
 	}
 
+	ThreadPool pool(10);
 	while (true) {
 		// Accept a client connection
 		Networking::ClientConnection client = server.Accept();
-		std::thread clientThread(HandleClientConnection, client);
-		clientThread.detach();
+		pool.enqueue(HandleClientConnection, client);
 	}
 
 	return 0;
