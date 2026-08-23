@@ -60,3 +60,12 @@ TEST(HTTPServerTests, DirectoryTraversal) {
 
 // Add more test cases as needed
 
+TEST(HTTPServerTests, GetMimeType) {
+    ASSERT_EQ(HTTP::GetMimeType("test.html"), "text/html");
+    ASSERT_EQ(HTTP::GetMimeType("script.js"), "application/javascript");
+    ASSERT_EQ(HTTP::GetMimeType("image.png"), "image/png");
+    ASSERT_EQ(HTTP::GetMimeType("data.json"), "application/json");
+    ASSERT_EQ(HTTP::GetMimeType("readme.txt"), "text/plain");
+    ASSERT_EQ(HTTP::GetMimeType("photo.webp"), "image/webp");
+    ASSERT_EQ(HTTP::GetMimeType("unknown.ext"), "application/octet-stream");
+}
