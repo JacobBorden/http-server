@@ -208,5 +208,11 @@ std::string HTTP::GetMimeType(std::string _pFilename)
 		return "image/png";
 	else if (fileExtention == "gif")
 		return "image/gif";
+	else if (fileExtention == "json")
+		return "application/json";
+	else if (fileExtention == "txt")
+		return "text/plain";
+	else if (fileExtention == "webp")
+		return "image/webp";
 	else return "application/octet-stream";
 }
