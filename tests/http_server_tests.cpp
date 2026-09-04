@@ -58,5 +58,23 @@ TEST(HTTPServerTests, DirectoryTraversal) {
     ASSERT_TRUE(response.find("HTTP/1.1 400 Bad Request") != std::string::npos);
 }
 
+TEST(HTTPServerTests, MimeTypeLookup) {
+    ASSERT_EQ(HTTP::GetMimeType("index.html"), "text/html");
+    ASSERT_EQ(HTTP::GetMimeType("style.css"), "text/css");
+    ASSERT_EQ(HTTP::GetMimeType("script.js"), "application/javascript");
+    ASSERT_EQ(HTTP::GetMimeType("image.jpg"), "image/jpeg");
+    ASSERT_EQ(HTTP::GetMimeType("image.jpeg"), "image/jpeg");
+    ASSERT_EQ(HTTP::GetMimeType("image.png"), "image/png");
+    ASSERT_EQ(HTTP::GetMimeType("image.gif"), "image/gif");
+    ASSERT_EQ(HTTP::GetMimeType("data.json"), "application/json");
+    ASSERT_EQ(HTTP::GetMimeType("text.txt"), "text/plain");
+    ASSERT_EQ(HTTP::GetMimeType("data.xml"), "application/xml");
+    ASSERT_EQ(HTTP::GetMimeType("document.pdf"), "application/pdf");
+    ASSERT_EQ(HTTP::GetMimeType("image.webp"), "image/webp");
+    ASSERT_EQ(HTTP::GetMimeType("archive.zip"), "application/zip");
+    ASSERT_EQ(HTTP::GetMimeType("unknown.ext"), "application/octet-stream");
+    ASSERT_EQ(HTTP::GetMimeType("file_with_no_ext"), "application/octet-stream");
+}
+
 // Add more test cases as needed
 
