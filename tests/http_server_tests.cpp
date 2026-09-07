@@ -37,7 +37,7 @@ TEST(HTTPServerTests, GenerateResponse) {
         "Content-Type: text/html\r\n"
         "Content-Length: 95\r\n"
         "\r\n"
-        "<!DOCTYPE html><html><head><title>Test</title></head><body><h1>Hello, world!</h1></body></html>\r\n";
+        "<!DOCTYPE html><html><head><title>Test</title></head><body><h1>Hello, world!</h1></body></html>";
 
     ASSERT_EQ(response, expected_response);
 }
@@ -60,3 +60,15 @@ TEST(HTTPServerTests, DirectoryTraversal) {
 
 // Add more test cases as needed
 
+
+TEST(HTTPServerTests, BinaryResponsePreservesLength) {
+    HTTP::HTTPREQUEST request;
+    request.method = "GET";
+    request.uri = "/binary.txt";
+    request.protocol = "HTTP/1.1";
+    std::string response = HTTP::GenerateResponse(request);
+    const auto split = response.find("\r\n\r\n");
+    ASSERT_NE(split, std::string::npos);
+    EXPECT_NE(response.find("Content-Length: 3\r\n"), std::string::npos);
+    EXPECT_EQ(response.substr(split + 4), std::string("a\0b", 3));
+}
