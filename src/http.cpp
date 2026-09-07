@@ -95,7 +95,7 @@ std::string HTTP::HandleGetRequest(HTTP::HTTPREQUEST _pRequest)
 	httpResponse.statusCodeNumber = 200;
 	httpResponse.reasonPhrase = statusCode.at(httpResponse.statusCodeNumber);
 	httpResponse.contentType = GetMimeType(filePath);
-	httpResponse.body = buffer;
+	httpResponse.body.assign(buffer, static_cast<size_t>(fileSize));
 	responseStream << httpResponse.protocol <<" " <<httpResponse.statusCodeNumber<<" "<<httpResponse.reasonPhrase<<"\r\n";
 	responseStream<<"Content-Type: "<<httpResponse.contentType<<"\r\n";
 	responseStream<<"Content-Length: "<< fileSize<<"\r\n";
