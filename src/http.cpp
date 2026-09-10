@@ -1,4 +1,5 @@
 #include "http.h"
+#include <unordered_map>
 
 std::string trim(const std::string& str)
 {
@@ -196,17 +197,34 @@ std::string HTTP::GenerateErrorResponse(std::string _pErrorMessage, int _pErrorC
 std::string HTTP::GetMimeType(std::string _pFilename)
 {
 	std::string fileExtention = _pFilename.substr(_pFilename.find_last_of(".") + 1);
-	if(fileExtention == "html")
-		return "text/html";
-	else if(fileExtention == "css")
-		return "text/css";
-	else if (fileExtention == "js")
-		return "application/javascript";
-	else if (fileExtention  == "jpg" || fileExtention == "jpeg")
-		return "image/jpeg";
-	else if (fileExtention == "png")
-		return "image/png";
-	else if (fileExtention == "gif")
-		return "image/gif";
-	else return "application/octet-stream";
+
+	static const std::unordered_map<std::string, std::string> mimeTypes = {
+		{"html", "text/html"},
+		{"css", "text/css"},
+		{"js", "application/javascript"},
+		{"jpg", "image/jpeg"},
+		{"jpeg", "image/jpeg"},
+		{"png", "image/png"},
+		{"gif", "image/gif"},
+		{"json", "application/json"},
+		{"xml", "application/xml"},
+		{"txt", "text/plain"},
+		{"svg", "image/svg+xml"},
+		{"webp", "image/webp"},
+		{"pdf", "application/pdf"},
+		{"ico", "image/x-icon"},
+		{"woff", "font/woff"},
+		{"woff2", "font/woff2"},
+		{"ttf", "font/ttf"},
+		{"eot", "application/vnd.ms-fontobject"},
+		{"mp3", "audio/mpeg"},
+		{"mp4", "video/mp4"},
+		{"wav", "audio/wav"}
+	};
+
+	auto it = mimeTypes.find(fileExtention);
+	if (it != mimeTypes.end()) {
+		return it->second;
+	}
+	return "application/octet-stream";
 }
