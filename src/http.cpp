@@ -195,18 +195,35 @@ std::string HTTP::GenerateErrorResponse(std::string _pErrorMessage, int _pErrorC
 
 std::string HTTP::GetMimeType(std::string _pFilename)
 {
+	static const std::unordered_map<std::string, std::string> mimeTypes = {
+		{"html", "text/html"},
+		{"css", "text/css"},
+		{"js", "application/javascript"},
+		{"jpg", "image/jpeg"},
+		{"jpeg", "image/jpeg"},
+		{"png", "image/png"},
+		{"gif", "image/gif"},
+		{"json", "application/json"},
+		{"xml", "application/xml"},
+		{"txt", "text/plain"},
+		{"pdf", "application/pdf"},
+		{"svg", "image/svg+xml"},
+		{"webp", "image/webp"},
+		{"mp4", "video/mp4"},
+		{"webm", "video/webm"},
+		{"wav", "audio/wav"},
+		{"mp3", "audio/mpeg"},
+		{"woff", "font/woff"},
+		{"woff2", "font/woff2"},
+		{"ttf", "font/ttf"},
+		{"eot", "application/vnd.ms-fontobject"},
+		{"otf", "font/otf"}
+	};
+
 	std::string fileExtention = _pFilename.substr(_pFilename.find_last_of(".") + 1);
-	if(fileExtention == "html")
-		return "text/html";
-	else if(fileExtention == "css")
-		return "text/css";
-	else if (fileExtention == "js")
-		return "application/javascript";
-	else if (fileExtention  == "jpg" || fileExtention == "jpeg")
-		return "image/jpeg";
-	else if (fileExtention == "png")
-		return "image/png";
-	else if (fileExtention == "gif")
-		return "image/gif";
-	else return "application/octet-stream";
+	auto it = mimeTypes.find(fileExtention);
+	if (it != mimeTypes.end()) {
+		return it->second;
+	}
+	return "application/octet-stream";
 }
