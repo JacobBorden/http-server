@@ -3,7 +3,7 @@
 ## Existing Items
 - [ ] add support for multiple connections (Current implementation is detached thread per connection, consider thread pool)
 - [ ] build out http request parsing (Current implementation uses fragile stringstream logic)
-- [ ] add more types to mime look up
+- [x] add more types to mime look up
 
 ## Newly Identified Improvements
 - [ ] Implement a Thread Pool to replace the `std::thread(...).detach()` model for better scalability and resource management.
