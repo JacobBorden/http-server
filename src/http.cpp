@@ -16,13 +16,18 @@ std::string trim(const std::string& str)
 HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 {
 	HTTPREQUEST request;
-	std::istringstream requestStream(_pRequest);
+	// Split before reading lines so the body keeps its original bytes.
+	const size_t headerEnd = _pRequest.find("\r\n\r\n");
+	const size_t lfHeaderEnd = headerEnd == std::string::npos ? _pRequest.find("\n\n") : std::string::npos;
+	const size_t separator = headerEnd != std::string::npos ? headerEnd : lfHeaderEnd;
+	const size_t separatorLength = headerEnd != std::string::npos ? 4 : 2;
+	std::istringstream requestStream(_pRequest.substr(0, separator));
 	std::string requestLine;
 	std::getline(requestStream, requestLine);
 	std::istringstream requestLineStream (requestLine);
 	requestLineStream >> request.method >> request.uri >> request.protocol;
 	std::string line;
-	while(std::getline(requestStream, line) && line != "\r")
+	while(std::getline(requestStream, line))
 	{
 		std::istringstream lineStream(line);
 		std::string headerName;
@@ -37,11 +42,8 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 
 	}
 
-	while(std::getline(requestStream,line))
-	{
-		if(line !="\r")
-			request.body +=line;
-	}
+	if (separator != std::string::npos)
+		request.body = _pRequest.substr(separator + separatorLength);
 	return request;
 }
 
