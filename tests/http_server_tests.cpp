@@ -41,6 +41,15 @@ TEST(HTTPServerTests, PreservesPostBodyBytes) {
     EXPECT_EQ(response.substr(body_start + separator.size()), body);
 }
 
+TEST(HTTPServerTests, UsesFirstHeaderSeparator) {
+    const std::string body = "first\r\n\r\nsecond";
+    const std::string raw_request = "POST /echo HTTP/1.1\nHost: localhost\n\n" + body;
+
+    const HTTP::HTTPREQUEST request = HTTP::ParseHttpRequest(raw_request);
+    EXPECT_EQ(request.headers.at("Host"), "localhost");
+    EXPECT_EQ(request.body, body);
+}
+
 // Test case for generating an HTTP response
 TEST(HTTPServerTests, GenerateResponse) {
     HTTP::HTTPREQUEST request;

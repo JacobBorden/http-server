@@ -18,9 +18,11 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 	HTTPREQUEST request;
 	// Split before reading lines so the body keeps its original bytes.
 	const size_t headerEnd = _pRequest.find("\r\n\r\n");
-	const size_t lfHeaderEnd = headerEnd == std::string::npos ? _pRequest.find("\n\n") : std::string::npos;
-	const size_t separator = headerEnd != std::string::npos ? headerEnd : lfHeaderEnd;
-	const size_t separatorLength = headerEnd != std::string::npos ? 4 : 2;
+	const size_t lfHeaderEnd = _pRequest.find("\n\n");
+	const bool useCrlf = headerEnd != std::string::npos &&
+		(lfHeaderEnd == std::string::npos || headerEnd < lfHeaderEnd);
+	const size_t separator = useCrlf ? headerEnd : lfHeaderEnd;
+	const size_t separatorLength = useCrlf ? 4 : 2;
 	std::istringstream requestStream(_pRequest.substr(0, separator));
 	std::string requestLine;
 	std::getline(requestStream, requestLine);
