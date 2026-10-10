@@ -21,6 +21,35 @@ TEST(HTTPServerTests, ParseHttpRequest) {
     ASSERT_EQ(request.headers["Accept"], "text/html");
 }
 
+TEST(HTTPServerTests, PreservesPostBodyBytes) {
+    const std::string body("first\r\nsecond\n\0last", 19);
+    const std::string raw_request =
+        "POST /echo HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "Content-Length: 19\r\n"
+        "\r\n" + body;
+
+    const HTTP::HTTPREQUEST request = HTTP::ParseHttpRequest(raw_request);
+    EXPECT_EQ(request.body, body);
+    EXPECT_EQ(request.headers.at("Content-Length"), "19");
+
+    const std::string response = HTTP::GenerateResponse(request);
+    const std::string separator = "\r\n\r\n";
+    const size_t body_start = response.find(separator);
+    ASSERT_NE(body_start, std::string::npos);
+    EXPECT_NE(response.find("Content-Length: 19\r\n"), std::string::npos);
+    EXPECT_EQ(response.substr(body_start + separator.size()), body);
+}
+
+TEST(HTTPServerTests, UsesFirstHeaderSeparator) {
+    const std::string body = "first\r\n\r\nsecond";
+    const std::string raw_request = "POST /echo HTTP/1.1\nHost: localhost\n\n" + body;
+
+    const HTTP::HTTPREQUEST request = HTTP::ParseHttpRequest(raw_request);
+    EXPECT_EQ(request.headers.at("Host"), "localhost");
+    EXPECT_EQ(request.body, body);
+}
+
 // Test case for generating an HTTP response
 TEST(HTTPServerTests, GenerateResponse) {
     HTTP::HTTPREQUEST request;
@@ -59,4 +88,3 @@ TEST(HTTPServerTests, DirectoryTraversal) {
 }
 
 // Add more test cases as needed
-
