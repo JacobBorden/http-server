@@ -1,6 +1,39 @@
 #include <gtest/gtest.h>
 #include "http.h"
 #include "server.h"
+#include "server_config.h"
+
+TEST(ServerConfigTests, DefaultAndExplicitPort) {
+    std::uint16_t port = 0;
+    std::string error;
+    const char* defaultArgs[] = {"server.exe"};
+    EXPECT_TRUE(ParseServerPort(1, defaultArgs, port, error));
+    EXPECT_EQ(port, 80);
+    EXPECT_TRUE(error.empty());
+
+    const char* minArgs[] = {"server.exe", "--port", "1"};
+    EXPECT_TRUE(ParseServerPort(3, minArgs, port, error));
+    EXPECT_EQ(port, 1);
+    const char* maxArgs[] = {"server.exe", "--port", "65535"};
+    EXPECT_TRUE(ParseServerPort(3, maxArgs, port, error));
+    EXPECT_EQ(port, 65535);
+}
+
+TEST(ServerConfigTests, RejectsInvalidArguments) {
+    std::uint16_t port = 0;
+    std::string error;
+    for (const char* value : {"", "0", "65536", "999999999999999999", "-1", "+2", "3x"}) {
+        const char* args[] = {"server.exe", "--port", value};
+        EXPECT_FALSE(ParseServerPort(3, args, port, error)) << value;
+        EXPECT_FALSE(error.empty());
+    }
+    const char* missing[] = {"server.exe", "--port"};
+    EXPECT_FALSE(ParseServerPort(2, missing, port, error));
+    const char* extra[] = {"server.exe", "--port", "8080", "extra"};
+    EXPECT_FALSE(ParseServerPort(4, extra, port, error));
+    const char* unknown[] = {"server.exe", "--host", "localhost"};
+    EXPECT_FALSE(ParseServerPort(3, unknown, port, error));
+}
 
 // Test case for parsing an HTTP request
 TEST(HTTPServerTests, ParseHttpRequest) {
@@ -59,4 +92,3 @@ TEST(HTTPServerTests, DirectoryTraversal) {
 }
 
 // Add more test cases as needed
-
