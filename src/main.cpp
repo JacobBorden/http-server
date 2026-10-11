@@ -1,14 +1,14 @@
 #include <iostream>
 #include <string>
 #include <cstring>
+#include <functional>
 #include <thread>
 #include "server.h"
 #include "http.h"
 #include "logger.h"
+#include "server_config.h"
 
-Networking::Server server(80, Networking::ServerType::IPv4);
-
-void HandleClientConnection(Networking::ClientConnection _pClient)
+void HandleClientConnection(Networking::Server& server, Networking::ClientConnection _pClient)
 {// Read the incoming request
 		std::string request = &server.Receive(_pClient)[0];
 		HTTP::HTTPREQUEST httpRequest = HTTP::ParseHttpRequest(request);
@@ -26,7 +26,14 @@ void HandleClientConnection(Networking::ClientConnection _pClient)
 
 }
 
-int main(){
+int main(int argc, char* argv[]){
+	std::uint16_t port;
+	std::string error;
+	if (!ParseServerPort(argc, argv, port, error)) {
+		std::cerr << error << std::endl;
+		return 2;
+	}
+	static Networking::Server server(port, Networking::ServerType::IPv4);
 
  
 	if(server.ServerIsRunning()) {
@@ -40,7 +47,7 @@ int main(){
 	while (true) {
 		// Accept a client connection
 		Networking::ClientConnection client = server.Accept();
-		std::thread clientThread(HandleClientConnection, client);
+		std::thread clientThread(HandleClientConnection, std::ref(server), client);
 		clientThread.detach();
 	}
 
