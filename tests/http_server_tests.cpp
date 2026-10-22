@@ -58,6 +58,23 @@ TEST(HTTPServerTests, DirectoryTraversal) {
     ASSERT_TRUE(response.find("HTTP/1.1 400 Bad Request") != std::string::npos);
 }
 
+TEST(HTTPServerTests, MalformedRequestLineReturnsBadRequest) {
+    for (const std::string& raw : {
+             "GET /index.html\r\n\r\n",
+             "GET  HTTP/1.1\r\n\r\n",
+             "GET /index.html HTTP/1.1 extra\r\n\r\n",
+             "\r\n\r\n"}) {
+        const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(raw));
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u) << raw;
+    }
+}
+
+TEST(HTTPServerTests, UnsupportedMethodStillReturnsMethodNotAllowed) {
+    const auto response = HTTP::GenerateResponse(
+        HTTP::ParseHttpRequest("PATCH /index.html HTTP/1.1\r\n\r\n"));
+    EXPECT_EQ(response.find("HTTP/1.1 405 Method Not Allowed\r\n"), 0u);
+}
+
 // Add more test cases as needed
 
 

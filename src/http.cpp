@@ -20,7 +20,12 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 	std::string requestLine;
 	std::getline(requestStream, requestLine);
 	std::istringstream requestLineStream (requestLine);
-	requestLineStream >> request.method >> request.uri >> request.protocol;
+	std::string extraToken;
+	if (!(requestLineStream >> request.method >> request.uri >> request.protocol) ||
+		(requestLineStream >> extraToken)) {
+		request.protocol.clear();
+		return request;
+	}
 	std::string line;
 	while(std::getline(requestStream, line) && line != "\r")
 	{
@@ -47,6 +52,9 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 
 std::string HTTP::GenerateResponse(HTTP::HTTPREQUEST _pRequest)
 {
+	if (_pRequest.method.empty() || _pRequest.uri.empty() || _pRequest.protocol.empty())
+		return GenerateErrorResponse("400 Bad Request", 400);
+
 	if (_pRequest.method == "GET")
 		return HandleGetRequest(_pRequest);
 	else if(_pRequest.method == "POST")
