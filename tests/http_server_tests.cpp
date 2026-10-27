@@ -60,3 +60,21 @@ TEST(HTTPServerTests, DirectoryTraversal) {
 
 // Add more test cases as needed
 
+
+// Test case for GetMimeType
+TEST(HTTPServerTests, GetMimeType) {
+    ASSERT_EQ(HTTP::GetMimeType("test.html"), "text/html");
+    ASSERT_EQ(HTTP::GetMimeType("style.css"), "text/css");
+    ASSERT_EQ(HTTP::GetMimeType("script.js"), "application/javascript");
+    ASSERT_EQ(HTTP::GetMimeType("image.jpg"), "image/jpeg");
+    ASSERT_EQ(HTTP::GetMimeType("image.jpeg"), "image/jpeg");
+    ASSERT_EQ(HTTP::GetMimeType("image.png"), "image/png");
+    ASSERT_EQ(HTTP::GetMimeType("image.gif"), "image/gif");
+    ASSERT_EQ(HTTP::GetMimeType("data.json"), "application/json");
+    ASSERT_EQ(HTTP::GetMimeType("text.txt"), "text/plain");
+    ASSERT_EQ(HTTP::GetMimeType("data.xml"), "application/xml");
+    ASSERT_EQ(HTTP::GetMimeType("vector.svg"), "image/svg+xml");
+    ASSERT_EQ(HTTP::GetMimeType("doc.pdf"), "application/pdf");
+    ASSERT_EQ(HTTP::GetMimeType("archive.zip"), "application/zip");
+    ASSERT_EQ(HTTP::GetMimeType("unknown.ext"), "application/octet-stream");
+}
