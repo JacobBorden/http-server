@@ -75,6 +75,12 @@ TEST(HTTPServerTests, UnsupportedMethodStillReturnsMethodNotAllowed) {
     EXPECT_EQ(response.find("HTTP/1.1 405 Method Not Allowed\r\n"), 0u);
 }
 
+TEST(HTTPServerTests, WhitespaceOnlyHeaderReturnsBadRequest) {
+    const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+        "GET /index.html HTTP/1.1\r\n \r\n\r\n"));
+    EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u);
+}
+
 // Add more test cases as needed
 
 

@@ -33,6 +33,10 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 		std::string headerName;
 		std::string headerValue;
 		lineStream >> headerName;
+		if (headerName.empty()) {
+			request.protocol.clear();
+			return request;
+		}
 		if(headerName.substr(headerName.size()-1) == ":")
 		{
 			headerName = headerName.substr(0, headerName.size()-1);
