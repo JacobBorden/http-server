@@ -43,6 +43,10 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 			std::getline(lineStream, headerValue);
 			request.headers[headerName] = trim(headerValue);
 		}
+		else {
+			request.protocol.clear();
+			return request;
+		}
 
 	}
 

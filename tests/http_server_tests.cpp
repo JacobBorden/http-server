@@ -81,6 +81,12 @@ TEST(HTTPServerTests, WhitespaceOnlyHeaderReturnsBadRequest) {
     EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u);
 }
 
+TEST(HTTPServerTests, HeaderWithoutColonReturnsBadRequest) {
+    const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+        "GET /index.html HTTP/1.1\r\nHost example.com\r\n\r\n"));
+    EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u);
+}
+
 // Add more test cases as needed
 
 
