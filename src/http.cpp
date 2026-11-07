@@ -20,7 +20,12 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 	std::string requestLine;
 	std::getline(requestStream, requestLine);
 	std::istringstream requestLineStream (requestLine);
-	requestLineStream >> request.method >> request.uri >> request.protocol;
+	std::string extraToken;
+	if (!(requestLineStream >> request.method >> request.uri >> request.protocol) ||
+		(requestLineStream >> extraToken)) {
+		request.protocol.clear();
+		return request;
+	}
 	std::string line;
 	while(std::getline(requestStream, line) && line != "\r")
 	{
@@ -28,11 +33,19 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 		std::string headerName;
 		std::string headerValue;
 		lineStream >> headerName;
+		if (headerName.empty()) {
+			request.protocol.clear();
+			return request;
+		}
 		if(headerName.substr(headerName.size()-1) == ":")
 		{
 			headerName = headerName.substr(0, headerName.size()-1);
 			std::getline(lineStream, headerValue);
 			request.headers[headerName] = trim(headerValue);
+		}
+		else {
+			request.protocol.clear();
+			return request;
 		}
 
 	}
@@ -47,6 +60,9 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 
 std::string HTTP::GenerateResponse(HTTP::HTTPREQUEST _pRequest)
 {
+	if (_pRequest.method.empty() || _pRequest.uri.empty() || _pRequest.protocol.empty())
+		return GenerateErrorResponse("400 Bad Request", 400);
+
 	if (_pRequest.method == "GET")
 		return HandleGetRequest(_pRequest);
 	else if(_pRequest.method == "POST")
@@ -95,7 +111,7 @@ std::string HTTP::HandleGetRequest(HTTP::HTTPREQUEST _pRequest)
 	httpResponse.statusCodeNumber = 200;
 	httpResponse.reasonPhrase = statusCode.at(httpResponse.statusCodeNumber);
 	httpResponse.contentType = GetMimeType(filePath);
-	httpResponse.body = buffer;
+	httpResponse.body.assign(buffer, static_cast<size_t>(fileSize));
 	responseStream << httpResponse.protocol <<" " <<httpResponse.statusCodeNumber<<" "<<httpResponse.reasonPhrase<<"\r\n";
 	responseStream<<"Content-Type: "<<httpResponse.contentType<<"\r\n";
 	responseStream<<"Content-Length: "<< fileSize<<"\r\n";

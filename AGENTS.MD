@@ -38,3 +38,9 @@ Tests must be run from the `bin/tests/` directory to ensure relative paths for t
 - **Networking**: Raw socket communication is handled by `NetworkingLibrary` (`Networking::Server` and `Networking::ClientConnection`).
 - **HTTP Parsing**: Parsing is currently manual using `std::istringstream`. It is somewhat fragile and expects well-formed HTTP requests ending in `\r\n`.
 - **Static Files**: GET requests try to serve files from a `public/` directory relative to the executable's current working directory.
+
+## Project operations
+
+Read `PROJECT_MANAGEMENT.md` for the repository baseline, prioritized management work, and verification requirements. Preserve existing TODO.MD and DESIGN.MD as the technical backlog and architecture sources.
+
+Jacob authorized private Slack operations alerts on 2026-09-07. Send meaningful project changes, new blockers, recoveries, and required actions to #codex-ops (C0C01JWQ77Y). Suppress unchanged alerts, record confirmed delivery in task or automation memory, and retain the primary result if Slack is unavailable. Do not post credentials or raw private source material.
