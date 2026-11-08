@@ -87,6 +87,14 @@ TEST(HTTPServerTests, HeaderWithoutColonReturnsBadRequest) {
     EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u);
 }
 
+TEST(HTTPServerTests, HeaderValueNeedsNoLeadingSpace) {
+    const auto request = HTTP::ParseHttpRequest(
+        "GET /index.html HTTP/1.1\r\nHost:example.com\r\nReferer:https://example.com/a\r\n\r\n");
+    EXPECT_EQ(request.protocol, "HTTP/1.1");
+    EXPECT_EQ(request.headers.at("Host"), "example.com");
+    EXPECT_EQ(request.headers.at("Referer"), "https://example.com/a");
+}
+
 // Add more test cases as needed
 
 

@@ -29,24 +29,13 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 	std::string line;
 	while(std::getline(requestStream, line) && line != "\r")
 	{
-		std::istringstream lineStream(line);
-		std::string headerName;
-		std::string headerValue;
-		lineStream >> headerName;
-		if (headerName.empty()) {
+		const auto colon = line.find(':');
+		if (colon == std::string::npos || colon == 0 ||
+			line[colon - 1] == ' ' || line[colon - 1] == '\t') {
 			request.protocol.clear();
 			return request;
 		}
-		if(headerName.substr(headerName.size()-1) == ":")
-		{
-			headerName = headerName.substr(0, headerName.size()-1);
-			std::getline(lineStream, headerValue);
-			request.headers[headerName] = trim(headerValue);
-		}
-		else {
-			request.protocol.clear();
-			return request;
-		}
+		request.headers[line.substr(0, colon)] = trim(line.substr(colon + 1));
 
 	}
 
