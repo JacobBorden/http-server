@@ -2,7 +2,7 @@
 
 std::string trim(const std::string& str)
 {
-	const std::string whitespace = " \r";
+	const std::string whitespace = " \t\r";
 	size_t start = str.find_first_not_of(whitespace);
 	size_t end = str.find_last_not_of(whitespace);
 
