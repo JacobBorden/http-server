@@ -106,6 +106,14 @@ TEST(HTTPServerTests, HeaderTabWhitespace) {
     EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u);
 }
 
+TEST(HTTPServerTests, HeaderNameRejectsEmbeddedWhitespace) {
+    for (const std::string& name : {"Bad Name", "Bad\tName", "Bad\rName"}) {
+        const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+            "GET /index.html HTTP/1.1\r\n" + name + ": value\r\n\r\n"));
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u) << name;
+    }
+}
+
 // Add more test cases as needed
 
 

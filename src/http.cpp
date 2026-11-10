@@ -31,7 +31,7 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 	{
 		const auto colon = line.find(':');
 		if (colon == std::string::npos || colon == 0 ||
-			line[colon - 1] == ' ' || line[colon - 1] == '\t') {
+			line.substr(0, colon).find_first_of(" \t\r") != std::string::npos) {
 			request.protocol.clear();
 			return request;
 		}
