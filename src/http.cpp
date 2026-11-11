@@ -1,4 +1,5 @@
 #include "http.h"
+#include <algorithm>
 
 std::string trim(const std::string& str)
 {
@@ -31,7 +32,10 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 	{
 		const auto colon = line.find(':');
 		if (colon == std::string::npos || colon == 0 ||
-			line.substr(0, colon).find_first_of(" \t\r") != std::string::npos) {
+			line.substr(0, colon).find_first_of(" \t\r") != std::string::npos ||
+			std::any_of(line.begin(), line.begin() + colon, [](unsigned char c) {
+				return c < 0x20 || c == 0x7f;
+			})) {
 			request.protocol.clear();
 			return request;
 		}

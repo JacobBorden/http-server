@@ -114,6 +114,16 @@ TEST(HTTPServerTests, HeaderNameRejectsEmbeddedWhitespace) {
     }
 }
 
+TEST(HTTPServerTests, HeaderNameRejectsControlBytes) {
+    for (const char control : {'\0', '\x01', '\x1f', '\x7f'}) {
+        const std::string name = std::string("Bad") + control + "Name";
+        const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+            "GET /index.html HTTP/1.1\r\n" + name + ": value\r\n\r\n"));
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u)
+            << static_cast<int>(control);
+    }
+}
+
 // Add more test cases as needed
 
 
