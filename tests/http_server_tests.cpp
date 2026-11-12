@@ -124,6 +124,18 @@ TEST(HTTPServerTests, HeaderNameRejectsControlBytes) {
     }
 }
 
+TEST(HTTPServerTests, HeaderNameUsesTokenCharacters) {
+    const auto request = HTTP::ParseHttpRequest(
+        "GET /index.html HTTP/1.1\r\nX_Trace-Id!:#ok\r\n\r\n");
+    EXPECT_EQ(request.headers.at("X_Trace-Id!"), "#ok");
+
+    for (const std::string& name : {"Bad/Name", "Bad(Name", "Bad=Name", "Bad,Name"}) {
+        const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+            "GET /index.html HTTP/1.1\r\n" + name + ": value\r\n\r\n"));
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u) << name;
+    }
+}
+
 // Add more test cases as needed
 
 
