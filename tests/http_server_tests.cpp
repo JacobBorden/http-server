@@ -136,6 +136,16 @@ TEST(HTTPServerTests, HeaderNameUsesTokenCharacters) {
     }
 }
 
+TEST(HTTPServerTests, HeaderValueRejectsControlBytes) {
+    for (const char control : {'\0', '\x01', '\x1f', '\x7f', '\r'}) {
+        const std::string value = std::string("before") + control + "after";
+        const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+            "GET /index.html HTTP/1.1\r\nX-Value: " + value + "\r\n\r\n"));
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u)
+            << static_cast<int>(control);
+    }
+}
+
 // Add more test cases as needed
 
 

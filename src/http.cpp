@@ -40,7 +40,16 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 			request.protocol.clear();
 			return request;
 		}
-		request.headers[line.substr(0, colon)] = trim(line.substr(colon + 1));
+		const std::string value = line.substr(colon + 1);
+		const auto valueEnd = !value.empty() && value.back() == '\r'
+			? value.size() - 1 : value.size();
+		if (std::any_of(value.begin(), value.begin() + valueEnd, [](unsigned char c) {
+			return (c < 0x20 && c != '\t') || c == 0x7f;
+		})) {
+			request.protocol.clear();
+			return request;
+		}
+		request.headers[line.substr(0, colon)] = trim(value);
 
 	}
 
