@@ -27,6 +27,15 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 		request.protocol.clear();
 		return request;
 	}
+	const auto hasControl = [](const std::string& token) {
+		return std::any_of(token.begin(), token.end(), [](unsigned char c) {
+			return c < 0x20 || c == 0x7f;
+		});
+	};
+	if (hasControl(request.method) || hasControl(request.uri) || hasControl(request.protocol)) {
+		request.protocol.clear();
+		return request;
+	}
 	std::string line;
 	while(std::getline(requestStream, line) && line != "\r")
 	{
