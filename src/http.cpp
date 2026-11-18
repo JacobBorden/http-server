@@ -1,6 +1,16 @@
 #include "http.h"
 #include <algorithm>
 
+namespace {
+bool IsHttpTokenCharacter(unsigned char c)
+{
+	static const std::string punctuation = "!#$%&'*+-.^_`|~";
+	return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+		(c >= '0' && c <= '9') ||
+		punctuation.find(c) != std::string::npos;
+}
+}
+
 std::string trim(const std::string& str)
 {
 	const std::string whitespace = " \t\r";
@@ -32,7 +42,8 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 			return c < 0x20 || c == 0x7f;
 		});
 	};
-	if (hasControl(request.method) || hasControl(request.uri) || hasControl(request.protocol)) {
+	if (!std::all_of(request.method.begin(), request.method.end(), IsHttpTokenCharacter) ||
+		hasControl(request.uri) || hasControl(request.protocol)) {
 		request.protocol.clear();
 		return request;
 	}
@@ -41,11 +52,7 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 	{
 		const auto colon = line.find(':');
 		if (colon == std::string::npos || colon == 0 ||
-			std::any_of(line.begin(), line.begin() + colon, [](unsigned char c) {
-				return !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
-					(c >= '0' && c <= '9') ||
-					std::string("!#$%&'*+-.^_`|~").find(c) != std::string::npos);
-			})) {
+			!std::all_of(line.begin(), line.begin() + colon, IsHttpTokenCharacter)) {
 			request.protocol.clear();
 			return request;
 		}

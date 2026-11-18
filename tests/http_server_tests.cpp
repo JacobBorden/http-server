@@ -75,6 +75,19 @@ TEST(HTTPServerTests, UnsupportedMethodStillReturnsMethodNotAllowed) {
     EXPECT_EQ(response.find("HTTP/1.1 405 Method Not Allowed\r\n"), 0u);
 }
 
+TEST(HTTPServerTests, RequestMethodUsesTokenCharacters) {
+    for (const std::string& method : {"GE/T", "GE(T", "GE:T", "G\xc3\x89T"}) {
+        const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+            method + " /index.html HTTP/1.1\r\n\r\n"));
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u) << method;
+    }
+
+    const auto request = HTTP::ParseHttpRequest("M-SEARCH /index.html HTTP/1.1\r\n\r\n");
+    EXPECT_EQ(request.method, "M-SEARCH");
+    const auto response = HTTP::GenerateResponse(request);
+    EXPECT_EQ(response.find("HTTP/1.1 405 Method Not Allowed\r\n"), 0u);
+}
+
 TEST(HTTPServerTests, RequestLineTokensRejectControlBytes) {
     for (const std::string& line : {
              std::string("GE\0T", 4) + " /index.html HTTP/1.1",
