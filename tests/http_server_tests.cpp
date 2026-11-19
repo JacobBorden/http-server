@@ -88,6 +88,22 @@ TEST(HTTPServerTests, RequestMethodUsesTokenCharacters) {
     EXPECT_EQ(response.find("HTTP/1.1 405 Method Not Allowed\r\n"), 0u);
 }
 
+TEST(HTTPServerTests, RequestVersionUsesHttpVersionSyntax) {
+    for (const std::string& version : {"http/1.1", "HTTP/1", "HTTP/1-1",
+                                      "HTTP/1.x", "HTTP/10.1", "HTTP/1.10"}) {
+        const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+            "GET /index.html " + version + "\r\n\r\n"));
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u) << version;
+    }
+
+    for (const std::string& version : {"HTTP/1.0", "HTTP/1.1"}) {
+        const auto request = HTTP::ParseHttpRequest(
+            "GET /index.html " + version + "\r\n\r\n");
+        EXPECT_EQ(request.protocol, version);
+        EXPECT_EQ(HTTP::GenerateResponse(request).find(version + " 200 OK\r\n"), 0u);
+    }
+}
+
 TEST(HTTPServerTests, RequestLineTokensRejectControlBytes) {
     for (const std::string& line : {
              std::string("GE\0T", 4) + " /index.html HTTP/1.1",

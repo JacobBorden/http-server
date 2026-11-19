@@ -2,6 +2,13 @@
 #include <algorithm>
 
 namespace {
+bool IsHttpVersion(const std::string& version)
+{
+	return version.size() == 8 && version.compare(0, 5, "HTTP/") == 0 &&
+		version[5] >= '0' && version[5] <= '9' && version[6] == '.' &&
+		version[7] >= '0' && version[7] <= '9';
+}
+
 bool IsHttpTokenCharacter(unsigned char c)
 {
 	static const std::string punctuation = "!#$%&'*+-.^_`|~";
@@ -43,7 +50,7 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 		});
 	};
 	if (!std::all_of(request.method.begin(), request.method.end(), IsHttpTokenCharacter) ||
-		hasControl(request.uri) || hasControl(request.protocol)) {
+		hasControl(request.uri) || !IsHttpVersion(request.protocol)) {
 		request.protocol.clear();
 		return request;
 	}
