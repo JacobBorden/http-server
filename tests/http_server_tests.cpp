@@ -119,6 +119,18 @@ TEST(HTTPServerTests, RequestLineTokensRejectControlBytes) {
     EXPECT_EQ(request.protocol, "HTTP/1.1");
 }
 
+TEST(HTTPServerTests, RequestLineRejectsOtherWhitespaceControls) {
+    for (const char control : {'\r', '\v', '\f'}) {
+        SCOPED_TRACE(static_cast<int>(control));
+        const std::string prefix = "GET /index.html HTTP/1.1";
+        const auto betweenTokens = HTTP::ParseHttpRequest(
+            std::string("GET") + control + " /index.html HTTP/1.1\r\n\r\n");
+        const auto afterVersion = HTTP::ParseHttpRequest(prefix + control + "\r\n\r\n");
+        EXPECT_EQ(HTTP::GenerateResponse(betweenTokens).find("HTTP/1.1 400 Bad Request\r\n"), 0u);
+        EXPECT_EQ(HTTP::GenerateResponse(afterVersion).find("HTTP/1.1 400 Bad Request\r\n"), 0u);
+    }
+}
+
 TEST(HTTPServerTests, WhitespaceOnlyHeaderReturnsBadRequest) {
     const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
         "GET /index.html HTTP/1.1\r\n \r\n\r\n"));

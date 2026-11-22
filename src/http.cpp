@@ -1,5 +1,6 @@
 #include "http.h"
 #include <algorithm>
+#include <locale>
 
 namespace {
 bool IsHttpVersion(const std::string& version)
@@ -37,20 +38,25 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 	std::istringstream requestStream(_pRequest);
 	std::string requestLine;
 	std::getline(requestStream, requestLine);
+	if (!requestLine.empty() && requestLine.back() == '\r')
+		requestLine.pop_back();
+
+	if (std::any_of(requestLine.begin(), requestLine.end(), [](unsigned char c) {
+		return (c < 0x20 && c != '\t') || c == 0x7f;
+	})) {
+		return request;
+	}
+
 	std::istringstream requestLineStream (requestLine);
+	requestLineStream.imbue(std::locale::classic());
 	std::string extraToken;
 	if (!(requestLineStream >> request.method >> request.uri >> request.protocol) ||
 		(requestLineStream >> extraToken)) {
 		request.protocol.clear();
 		return request;
 	}
-	const auto hasControl = [](const std::string& token) {
-		return std::any_of(token.begin(), token.end(), [](unsigned char c) {
-			return c < 0x20 || c == 0x7f;
-		});
-	};
 	if (!std::all_of(request.method.begin(), request.method.end(), IsHttpTokenCharacter) ||
-		hasControl(request.uri) || !IsHttpVersion(request.protocol)) {
+		!IsHttpVersion(request.protocol)) {
 		request.protocol.clear();
 		return request;
 	}
