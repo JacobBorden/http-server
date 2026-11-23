@@ -37,7 +37,7 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 	HTTPREQUEST request;
 	std::istringstream requestStream(_pRequest);
 	std::string requestLine;
-	std::getline(requestStream, requestLine);
+	std::getline(requestStream, requestLine, '\n');
 	if (!requestLine.empty() && requestLine.back() == '\r')
 		requestLine.pop_back();
 
@@ -61,7 +61,7 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 		return request;
 	}
 	std::string line;
-	while(std::getline(requestStream, line) && line != "\r")
+	while(std::getline(requestStream, line, '\n') && line != "\r")
 	{
 		const auto colon = line.find(':');
 		if (colon == std::string::npos || colon == 0 ||
@@ -82,7 +82,7 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 
 	}
 
-	while(std::getline(requestStream,line))
+	while(std::getline(requestStream, line, '\n'))
 	{
 		if(line !="\r")
 			request.body +=line;

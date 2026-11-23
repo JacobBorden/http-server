@@ -1,6 +1,52 @@
 #include <gtest/gtest.h>
+#include <locale>
 #include "http.h"
 #include "server.h"
+
+namespace {
+class RemappedNewline : public std::ctype<char> {
+protected:
+    char do_widen(char c) const override {
+        return c == '\n' ? '|' : c;
+    }
+
+    const char* do_widen(const char* first, const char* last, char* out) const override {
+        for (; first != last; ++first, ++out) {
+            *out = do_widen(*first);
+        }
+        return last;
+    }
+};
+
+class HttpRequestLocaleTest : public testing::Test {
+protected:
+    HttpRequestLocaleTest()
+        : previousLocale(std::locale::global(std::locale(std::locale::classic(),
+                                                        new RemappedNewline))) {}
+
+    ~HttpRequestLocaleTest() override {
+        std::locale::global(previousLocale);
+    }
+
+private:
+    const std::locale previousLocale;
+};
+}
+
+TEST_F(HttpRequestLocaleTest, UsesLiteralLineDelimiters) {
+    const auto request = HTTP::ParseHttpRequest(
+        "POST /example HTTP/1.1\r\n"
+        "X-Example: a|b\r\n"
+        "\r\n"
+        "left|right");
+
+    EXPECT_EQ(request.method, "POST");
+    EXPECT_EQ(request.uri, "/example");
+    EXPECT_EQ(request.protocol, "HTTP/1.1");
+    ASSERT_EQ(request.headers.count("X-Example"), 1u);
+    EXPECT_EQ(request.headers.at("X-Example"), "a|b");
+    EXPECT_EQ(request.body, "left|right");
+}
 
 // Test case for parsing an HTTP request
 TEST(HTTPServerTests, ParseHttpRequest) {
