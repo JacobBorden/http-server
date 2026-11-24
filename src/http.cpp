@@ -41,6 +41,11 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 	if (!requestLine.empty() && requestLine.back() == '\r')
 		requestLine.pop_back();
 
+	if (requestLine.empty() || requestLine.front() == ' ' || requestLine.front() == '\t' ||
+		requestLine.back() == ' ' || requestLine.back() == '\t') {
+		return request;
+	}
+
 	if (std::any_of(requestLine.begin(), requestLine.end(), [](unsigned char c) {
 		return (c < 0x20 && c != '\t') || c == 0x7f;
 	})) {
