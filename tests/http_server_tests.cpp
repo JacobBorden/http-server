@@ -115,6 +115,22 @@ TEST(HTTPServerTests, MalformedRequestLineReturnsBadRequest) {
     }
 }
 
+TEST(HTTPServerTests, RequestLineRequiresLineFeed) {
+    const std::string line = "GET /index.html HTTP/1.1";
+    for (const auto& truncated : {line, line + "\r"}) {
+        const auto request = HTTP::ParseHttpRequest(truncated);
+        EXPECT_TRUE(request.protocol.empty());
+        const auto response = HTTP::GenerateResponse(request);
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u);
+    }
+
+    for (const std::string& ending : {"\n", "\r\n"}) {
+        const auto request = HTTP::ParseHttpRequest(line + ending + "\r\n");
+        EXPECT_EQ(request.protocol, "HTTP/1.1");
+        EXPECT_EQ(HTTP::GenerateResponse(request).find("HTTP/1.1 200 OK\r\n"), 0u);
+    }
+}
+
 TEST(HTTPServerTests, UnsupportedMethodStillReturnsMethodNotAllowed) {
     const auto response = HTTP::GenerateResponse(
         HTTP::ParseHttpRequest("PATCH /index.html HTTP/1.1\r\n\r\n"));

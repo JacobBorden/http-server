@@ -37,7 +37,8 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 	HTTPREQUEST request;
 	std::istringstream requestStream(_pRequest);
 	std::string requestLine;
-	std::getline(requestStream, requestLine, '\n');
+	if (!std::getline(requestStream, requestLine, '\n') || requestStream.eof())
+		return request;
 	if (!requestLine.empty() && requestLine.back() == '\r')
 		requestLine.pop_back();
 
