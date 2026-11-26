@@ -88,6 +88,12 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 
 	}
 
+	// A complete header section ends with an empty CRLF line.
+	if (!requestStream || requestStream.eof()) {
+		request.protocol.clear();
+		return request;
+	}
+
 	while(std::getline(requestStream, line, '\n'))
 	{
 		if(line !="\r")

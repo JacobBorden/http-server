@@ -216,6 +216,23 @@ TEST(HTTPServerTests, WhitespaceOnlyHeaderReturnsBadRequest) {
     EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u);
 }
 
+TEST(HTTPServerTests, HeaderSectionRequiresCompleteSeparator) {
+    const std::string requestLine = "GET /index.html HTTP/1.1\r\n";
+    for (const std::string& suffix : {"", "Host: example.com", "Host: example.com\r\n",
+                                          "\r", "Host: example.com\r\n\r"}) {
+        const auto request = HTTP::ParseHttpRequest(requestLine + suffix);
+        EXPECT_TRUE(request.protocol.empty()) << suffix.size();
+        EXPECT_EQ(HTTP::GenerateResponse(request).find("HTTP/1.1 400 Bad Request\r\n"), 0u)
+            << suffix.size();
+    }
+
+    for (const std::string& suffix : {"\r\n", "Host: example.com\r\n\r\n"}) {
+        const auto request = HTTP::ParseHttpRequest(requestLine + suffix);
+        EXPECT_EQ(request.protocol, "HTTP/1.1");
+        EXPECT_EQ(HTTP::GenerateResponse(request).find("HTTP/1.1 200 OK\r\n"), 0u);
+    }
+}
+
 TEST(HTTPServerTests, HeaderWithoutColonReturnsBadRequest) {
     const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
         "GET /index.html HTTP/1.1\r\nHost example.com\r\n\r\n"));
