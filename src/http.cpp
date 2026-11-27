@@ -1,43 +1,101 @@
 #include "http.h"
+#include <algorithm>
+#include <locale>
+
+namespace {
+bool IsHttpVersion(const std::string& version)
+{
+	return version.size() == 8 && version.compare(0, 5, "HTTP/") == 0 &&
+		version[5] >= '0' && version[5] <= '9' && version[6] == '.' &&
+		version[7] >= '0' && version[7] <= '9';
+}
+
+bool IsHttpTokenCharacter(unsigned char c)
+{
+	static const std::string punctuation = "!#$%&'*+-.^_`|~";
+	return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+		(c >= '0' && c <= '9') ||
+		punctuation.find(c) != std::string::npos;
+}
+std::string TrimFrom(const std::string& str, std::size_t offset)
+{
+	const char* whitespace = " \t\r";
+	const auto start = str.find_first_not_of(whitespace, offset);
+	if (start == std::string::npos)
+		return "";
+
+	const auto end = str.find_last_not_of(whitespace);
+	return str.substr(start, end - start + 1);
+}
+}
 
 std::string trim(const std::string& str)
 {
-	const std::string whitespace = " \r";
-	size_t start = str.find_first_not_of(whitespace);
-	size_t end = str.find_last_not_of(whitespace);
-
-	if (start == std::string::npos) // No non-whitespace characters found
-		return "";
-
-	return str.substr(start, end - start + 1);
+	return TrimFrom(str, 0);
 }
-
 
 HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 {
 	HTTPREQUEST request;
 	std::istringstream requestStream(_pRequest);
 	std::string requestLine;
-	std::getline(requestStream, requestLine);
+	if (!std::getline(requestStream, requestLine, '\n') || requestStream.eof())
+		return request;
+	if (!requestLine.empty() && requestLine.back() == '\r')
+		requestLine.pop_back();
+
+	if (requestLine.empty() || requestLine.front() == ' ' || requestLine.front() == '\t' ||
+		requestLine.back() == ' ' || requestLine.back() == '\t') {
+		return request;
+	}
+
+	if (std::any_of(requestLine.begin(), requestLine.end(), [](unsigned char c) {
+		return (c < 0x20 && c != '\t') || c == 0x7f;
+	})) {
+		return request;
+	}
+
 	std::istringstream requestLineStream (requestLine);
-	requestLineStream >> request.method >> request.uri >> request.protocol;
+	requestLineStream.imbue(std::locale::classic());
+	std::string extraToken;
+	if (!(requestLineStream >> request.method >> request.uri >> request.protocol) ||
+		(requestLineStream >> extraToken)) {
+		request.protocol.clear();
+		return request;
+	}
+	if (!std::all_of(request.method.begin(), request.method.end(), IsHttpTokenCharacter) ||
+		!IsHttpVersion(request.protocol)) {
+		request.protocol.clear();
+		return request;
+	}
 	std::string line;
-	while(std::getline(requestStream, line) && line != "\r")
+	while(std::getline(requestStream, line, '\n') && line != "\r")
 	{
-		std::istringstream lineStream(line);
-		std::string headerName;
-		std::string headerValue;
-		lineStream >> headerName;
-		if(headerName.substr(headerName.size()-1) == ":")
-		{
-			headerName = headerName.substr(0, headerName.size()-1);
-			std::getline(lineStream, headerValue);
-			request.headers[headerName] = trim(headerValue);
+		const auto colon = line.find(':');
+		if (colon == std::string::npos || colon == 0 ||
+			!std::all_of(line.begin(), line.begin() + colon, IsHttpTokenCharacter)) {
+			request.protocol.clear();
+			return request;
 		}
+		const auto valueStart = colon + 1;
+		const auto valueEnd = line.back() == '\r' ? line.end() - 1 : line.end();
+		if (std::any_of(line.begin() + valueStart, valueEnd, [](unsigned char c) {
+			return (c < 0x20 && c != '\t') || c == 0x7f;
+		})) {
+			request.protocol.clear();
+			return request;
+		}
+		request.headers[line.substr(0, colon)] = TrimFrom(line, valueStart);
 
 	}
 
-	while(std::getline(requestStream,line))
+	// A complete header section ends with an empty CRLF line.
+	if (!requestStream || requestStream.eof()) {
+		request.protocol.clear();
+		return request;
+	}
+
+	while(std::getline(requestStream, line, '\n'))
 	{
 		if(line !="\r")
 			request.body +=line;
@@ -47,6 +105,9 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 
 std::string HTTP::GenerateResponse(HTTP::HTTPREQUEST _pRequest)
 {
+	if (_pRequest.method.empty() || _pRequest.uri.empty() || _pRequest.protocol.empty())
+		return GenerateErrorResponse("400 Bad Request", 400);
+
 	if (_pRequest.method == "GET")
 		return HandleGetRequest(_pRequest);
 	else if(_pRequest.method == "POST")
@@ -95,7 +156,7 @@ std::string HTTP::HandleGetRequest(HTTP::HTTPREQUEST _pRequest)
 	httpResponse.statusCodeNumber = 200;
 	httpResponse.reasonPhrase = statusCode.at(httpResponse.statusCodeNumber);
 	httpResponse.contentType = GetMimeType(filePath);
-	httpResponse.body = buffer;
+	httpResponse.body.assign(buffer, static_cast<size_t>(fileSize));
 	responseStream << httpResponse.protocol <<" " <<httpResponse.statusCodeNumber<<" "<<httpResponse.reasonPhrase<<"\r\n";
 	responseStream<<"Content-Type: "<<httpResponse.contentType<<"\r\n";
 	responseStream<<"Content-Length: "<< fileSize<<"\r\n";

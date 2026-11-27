@@ -1,6 +1,52 @@
 #include <gtest/gtest.h>
+#include <locale>
 #include "http.h"
 #include "server.h"
+
+namespace {
+class RemappedNewline : public std::ctype<char> {
+protected:
+    char do_widen(char c) const override {
+        return c == '\n' ? '|' : c;
+    }
+
+    const char* do_widen(const char* first, const char* last, char* out) const override {
+        for (; first != last; ++first, ++out) {
+            *out = do_widen(*first);
+        }
+        return last;
+    }
+};
+
+class HttpRequestLocaleTest : public testing::Test {
+protected:
+    HttpRequestLocaleTest()
+        : previousLocale(std::locale::global(std::locale(std::locale::classic(),
+                                                        new RemappedNewline))) {}
+
+    ~HttpRequestLocaleTest() override {
+        std::locale::global(previousLocale);
+    }
+
+private:
+    const std::locale previousLocale;
+};
+}
+
+TEST_F(HttpRequestLocaleTest, UsesLiteralLineDelimiters) {
+    const auto request = HTTP::ParseHttpRequest(
+        "POST /example HTTP/1.1\r\n"
+        "X-Example: a|b\r\n"
+        "\r\n"
+        "left|right");
+
+    EXPECT_EQ(request.method, "POST");
+    EXPECT_EQ(request.uri, "/example");
+    EXPECT_EQ(request.protocol, "HTTP/1.1");
+    ASSERT_EQ(request.headers.count("X-Example"), 1u);
+    EXPECT_EQ(request.headers.at("X-Example"), "a|b");
+    EXPECT_EQ(request.body, "left|right");
+}
 
 // Test case for parsing an HTTP request
 TEST(HTTPServerTests, ParseHttpRequest) {
@@ -37,7 +83,7 @@ TEST(HTTPServerTests, GenerateResponse) {
         "Content-Type: text/html\r\n"
         "Content-Length: 95\r\n"
         "\r\n"
-        "<!DOCTYPE html><html><head><title>Test</title></head><body><h1>Hello, world!</h1></body></html>\r\n";
+        "<!DOCTYPE html><html><head><title>Test</title></head><body><h1>Hello, world!</h1></body></html>";
 
     ASSERT_EQ(response, expected_response);
 }
@@ -58,5 +104,225 @@ TEST(HTTPServerTests, DirectoryTraversal) {
     ASSERT_TRUE(response.find("HTTP/1.1 400 Bad Request") != std::string::npos);
 }
 
+TEST(HTTPServerTests, MalformedRequestLineReturnsBadRequest) {
+    for (const std::string& raw : {
+             "GET /index.html\r\n\r\n",
+             "GET  HTTP/1.1\r\n\r\n",
+             "GET /index.html HTTP/1.1 extra\r\n\r\n",
+             "\r\n\r\n"}) {
+        const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(raw));
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u) << raw;
+    }
+}
+
+TEST(HTTPServerTests, RequestLineRequiresLineFeed) {
+    const std::string line = "GET /index.html HTTP/1.1";
+    for (const auto& truncated : {line, line + "\r"}) {
+        const auto request = HTTP::ParseHttpRequest(truncated);
+        EXPECT_TRUE(request.protocol.empty());
+        const auto response = HTTP::GenerateResponse(request);
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u);
+    }
+
+    for (const std::string& ending : {"\n", "\r\n"}) {
+        const auto request = HTTP::ParseHttpRequest(line + ending + "\r\n");
+        EXPECT_EQ(request.protocol, "HTTP/1.1");
+        EXPECT_EQ(HTTP::GenerateResponse(request).find("HTTP/1.1 200 OK\r\n"), 0u);
+    }
+}
+
+TEST(HTTPServerTests, UnsupportedMethodStillReturnsMethodNotAllowed) {
+    const auto response = HTTP::GenerateResponse(
+        HTTP::ParseHttpRequest("PATCH /index.html HTTP/1.1\r\n\r\n"));
+    EXPECT_EQ(response.find("HTTP/1.1 405 Method Not Allowed\r\n"), 0u);
+}
+
+TEST(HTTPServerTests, RequestMethodUsesTokenCharacters) {
+    for (const std::string& method : {"GE/T", "GE(T", "GE:T", "G\xc3\x89T"}) {
+        const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+            method + " /index.html HTTP/1.1\r\n\r\n"));
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u) << method;
+    }
+
+    const auto request = HTTP::ParseHttpRequest("M-SEARCH /index.html HTTP/1.1\r\n\r\n");
+    EXPECT_EQ(request.method, "M-SEARCH");
+    const auto response = HTTP::GenerateResponse(request);
+    EXPECT_EQ(response.find("HTTP/1.1 405 Method Not Allowed\r\n"), 0u);
+}
+
+TEST(HTTPServerTests, RequestVersionUsesHttpVersionSyntax) {
+    for (const std::string& version : {"http/1.1", "HTTP/1", "HTTP/1-1",
+                                      "HTTP/1.x", "HTTP/10.1", "HTTP/1.10"}) {
+        const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+            "GET /index.html " + version + "\r\n\r\n"));
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u) << version;
+    }
+
+    for (const std::string& version : {"HTTP/1.0", "HTTP/1.1"}) {
+        const auto request = HTTP::ParseHttpRequest(
+            "GET /index.html " + version + "\r\n\r\n");
+        EXPECT_EQ(request.protocol, version);
+        EXPECT_EQ(HTTP::GenerateResponse(request).find(version + " 200 OK\r\n"), 0u);
+    }
+}
+
+TEST(HTTPServerTests, RequestLineTokensRejectControlBytes) {
+    for (const std::string& line : {
+             std::string("GE\0T", 4) + " /index.html HTTP/1.1",
+             std::string("GET /in\x01" "dex.html HTTP/1.1"),
+             std::string("GET /index.html HTTP/1.1\x7f")}) {
+        const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(line + "\r\n\r\n"));
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u);
+    }
+
+    const auto request = HTTP::ParseHttpRequest("GET\t/index.html HTTP/1.1\r\n\r\n");
+    EXPECT_EQ(request.method, "GET");
+    EXPECT_EQ(request.uri, "/index.html");
+    EXPECT_EQ(request.protocol, "HTTP/1.1");
+}
+
+TEST(HTTPServerTests, RequestLineRejectsLeadingAndTrailingWhitespace) {
+    const std::string line = "GET /index.html HTTP/1.1";
+    for (const char whitespace : {' ', '\t'}) {
+        SCOPED_TRACE(static_cast<int>(whitespace));
+        for (const auto& paddedLine : {whitespace + line, line + whitespace}) {
+            const auto response = HTTP::GenerateResponse(
+                HTTP::ParseHttpRequest(paddedLine + "\r\n\r\n"));
+            EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u);
+        }
+    }
+
+    const auto request = HTTP::ParseHttpRequest("GET \t/index.html\tHTTP/1.1\r\n\r\n");
+    EXPECT_EQ(request.method, "GET");
+    EXPECT_EQ(request.uri, "/index.html");
+    EXPECT_EQ(request.protocol, "HTTP/1.1");
+}
+
+TEST(HTTPServerTests, RequestLineRejectsOtherWhitespaceControls) {
+    for (const char control : {'\r', '\v', '\f'}) {
+        SCOPED_TRACE(static_cast<int>(control));
+        const std::string prefix = "GET /index.html HTTP/1.1";
+        const auto betweenTokens = HTTP::ParseHttpRequest(
+            std::string("GET") + control + " /index.html HTTP/1.1\r\n\r\n");
+        const auto afterVersion = HTTP::ParseHttpRequest(prefix + control + "\r\n\r\n");
+        EXPECT_EQ(HTTP::GenerateResponse(betweenTokens).find("HTTP/1.1 400 Bad Request\r\n"), 0u);
+        EXPECT_EQ(HTTP::GenerateResponse(afterVersion).find("HTTP/1.1 400 Bad Request\r\n"), 0u);
+    }
+}
+
+TEST(HTTPServerTests, WhitespaceOnlyHeaderReturnsBadRequest) {
+    const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+        "GET /index.html HTTP/1.1\r\n \r\n\r\n"));
+    EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u);
+}
+
+TEST(HTTPServerTests, HeaderSectionRequiresCompleteSeparator) {
+    const std::string requestLine = "GET /index.html HTTP/1.1\r\n";
+    for (const std::string& suffix : {"", "Host: example.com", "Host: example.com\r\n",
+                                          "\r", "Host: example.com\r\n\r"}) {
+        const auto request = HTTP::ParseHttpRequest(requestLine + suffix);
+        EXPECT_TRUE(request.protocol.empty()) << suffix.size();
+        EXPECT_EQ(HTTP::GenerateResponse(request).find("HTTP/1.1 400 Bad Request\r\n"), 0u)
+            << suffix.size();
+    }
+
+    for (const std::string& suffix : {"\r\n", "Host: example.com\r\n\r\n"}) {
+        const auto request = HTTP::ParseHttpRequest(requestLine + suffix);
+        EXPECT_EQ(request.protocol, "HTTP/1.1");
+        EXPECT_EQ(HTTP::GenerateResponse(request).find("HTTP/1.1 200 OK\r\n"), 0u);
+    }
+}
+
+TEST(HTTPServerTests, HeaderWithoutColonReturnsBadRequest) {
+    const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+        "GET /index.html HTTP/1.1\r\nHost example.com\r\n\r\n"));
+    EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u);
+}
+
+TEST(HTTPServerTests, HeaderValueNeedsNoLeadingSpace) {
+    const auto request = HTTP::ParseHttpRequest(
+        "GET /index.html HTTP/1.1\r\nHost:example.com\r\nReferer:https://example.com/a\r\n\r\n");
+    EXPECT_EQ(request.protocol, "HTTP/1.1");
+    EXPECT_EQ(request.headers.at("Host"), "example.com");
+    EXPECT_EQ(request.headers.at("Referer"), "https://example.com/a");
+}
+
+TEST(HTTPServerTests, HeaderTabWhitespace) {
+    const auto request = HTTP::ParseHttpRequest(
+        "GET /index.html HTTP/1.1\r\nHost:\t example.com \t\r\n\r\n");
+    EXPECT_EQ(request.protocol, "HTTP/1.1");
+    EXPECT_EQ(request.headers.at("Host"), "example.com");
+
+    const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+        "GET /index.html HTTP/1.1\r\nHost\t: example.com\r\n\r\n"));
+    EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u);
+}
+
+TEST(HTTPServerTests, HeaderTrimmingPreservesValueContents) {
+    const auto request = HTTP::ParseHttpRequest(
+        "GET /index.html HTTP/1.1\r\n"
+        "X-Empty:\r\n"
+        "X-Padding: \t \r\n"
+        "X-Value: \tleft:\t right \t\r\n"
+        "\r\n");
+
+    ASSERT_EQ(request.protocol, "HTTP/1.1");
+    EXPECT_EQ(request.headers.at("X-Empty"), "");
+    EXPECT_EQ(request.headers.at("X-Padding"), "");
+    EXPECT_EQ(request.headers.at("X-Value"), "left:\t right");
+}
+
+TEST(HTTPServerTests, HeaderNameRejectsEmbeddedWhitespace) {
+    for (const std::string& name : {"Bad Name", "Bad\tName", "Bad\rName"}) {
+        const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+            "GET /index.html HTTP/1.1\r\n" + name + ": value\r\n\r\n"));
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u) << name;
+    }
+}
+
+TEST(HTTPServerTests, HeaderNameRejectsControlBytes) {
+    for (const char control : {'\0', '\x01', '\x1f', '\x7f'}) {
+        const std::string name = std::string("Bad") + control + "Name";
+        const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+            "GET /index.html HTTP/1.1\r\n" + name + ": value\r\n\r\n"));
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u)
+            << static_cast<int>(control);
+    }
+}
+
+TEST(HTTPServerTests, HeaderNameUsesTokenCharacters) {
+    const auto request = HTTP::ParseHttpRequest(
+        "GET /index.html HTTP/1.1\r\nX_Trace-Id!:#ok\r\n\r\n");
+    EXPECT_EQ(request.headers.at("X_Trace-Id!"), "#ok");
+
+    for (const std::string& name : {"Bad/Name", "Bad(Name", "Bad=Name", "Bad,Name"}) {
+        const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+            "GET /index.html HTTP/1.1\r\n" + name + ": value\r\n\r\n"));
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u) << name;
+    }
+}
+
+TEST(HTTPServerTests, HeaderValueRejectsControlBytes) {
+    for (const char control : {'\0', '\x01', '\x1f', '\x7f', '\r'}) {
+        const std::string value = std::string("before") + control + "after";
+        const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(
+            "GET /index.html HTTP/1.1\r\nX-Value: " + value + "\r\n\r\n"));
+        EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u)
+            << static_cast<int>(control);
+    }
+}
+
 // Add more test cases as needed
 
+
+TEST(HTTPServerTests, BinaryResponsePreservesLength) {
+    HTTP::HTTPREQUEST request;
+    request.method = "GET";
+    request.uri = "/binary.txt";
+    request.protocol = "HTTP/1.1";
+    std::string response = HTTP::GenerateResponse(request);
+    const auto split = response.find("\r\n\r\n");
+    ASSERT_NE(split, std::string::npos);
+    EXPECT_NE(response.find("Content-Length: 3\r\n"), std::string::npos);
+    EXPECT_EQ(response.substr(split + 4), std::string("a\0b", 3));
+}
