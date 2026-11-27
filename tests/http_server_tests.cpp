@@ -258,6 +258,20 @@ TEST(HTTPServerTests, HeaderTabWhitespace) {
     EXPECT_EQ(response.find("HTTP/1.1 400 Bad Request\r\n"), 0u);
 }
 
+TEST(HTTPServerTests, HeaderTrimmingPreservesValueContents) {
+    const auto request = HTTP::ParseHttpRequest(
+        "GET /index.html HTTP/1.1\r\n"
+        "X-Empty:\r\n"
+        "X-Padding: \t \r\n"
+        "X-Value: \tleft:\t right \t\r\n"
+        "\r\n");
+
+    ASSERT_EQ(request.protocol, "HTTP/1.1");
+    EXPECT_EQ(request.headers.at("X-Empty"), "");
+    EXPECT_EQ(request.headers.at("X-Padding"), "");
+    EXPECT_EQ(request.headers.at("X-Value"), "left:\t right");
+}
+
 TEST(HTTPServerTests, HeaderNameRejectsEmbeddedWhitespace) {
     for (const std::string& name : {"Bad Name", "Bad\tName", "Bad\rName"}) {
         const auto response = HTTP::GenerateResponse(HTTP::ParseHttpRequest(

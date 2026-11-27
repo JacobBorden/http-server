@@ -17,20 +17,22 @@ bool IsHttpTokenCharacter(unsigned char c)
 		(c >= '0' && c <= '9') ||
 		punctuation.find(c) != std::string::npos;
 }
+std::string TrimFrom(const std::string& str, std::size_t offset)
+{
+	const char* whitespace = " \t\r";
+	const auto start = str.find_first_not_of(whitespace, offset);
+	if (start == std::string::npos)
+		return "";
+
+	const auto end = str.find_last_not_of(whitespace);
+	return str.substr(start, end - start + 1);
+}
 }
 
 std::string trim(const std::string& str)
 {
-	const std::string whitespace = " \t\r";
-	size_t start = str.find_first_not_of(whitespace);
-	size_t end = str.find_last_not_of(whitespace);
-
-	if (start == std::string::npos) // No non-whitespace characters found
-		return "";
-
-	return str.substr(start, end - start + 1);
+	return TrimFrom(str, 0);
 }
-
 
 HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 {
@@ -75,16 +77,15 @@ HTTP::HTTPREQUEST HTTP::ParseHttpRequest(std::string _pRequest)
 			request.protocol.clear();
 			return request;
 		}
-		const std::string value = line.substr(colon + 1);
-		const auto valueEnd = !value.empty() && value.back() == '\r'
-			? value.size() - 1 : value.size();
-		if (std::any_of(value.begin(), value.begin() + valueEnd, [](unsigned char c) {
+		const auto valueStart = colon + 1;
+		const auto valueEnd = line.back() == '\r' ? line.end() - 1 : line.end();
+		if (std::any_of(line.begin() + valueStart, valueEnd, [](unsigned char c) {
 			return (c < 0x20 && c != '\t') || c == 0x7f;
 		})) {
 			request.protocol.clear();
 			return request;
 		}
-		request.headers[line.substr(0, colon)] = trim(value);
+		request.headers[line.substr(0, colon)] = TrimFrom(line, valueStart);
 
 	}
 
